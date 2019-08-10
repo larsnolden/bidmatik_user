@@ -1,0 +1,20 @@
+{
+  "name": "bidmatik_user_microservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node -r esm index.js"
+  },
+  "author": "lars@bidmatik.com",
+  "license": "ISC",
+  "dependencies": {
+    "casual": "^1.6.2",
+    "esm": "^3.2.25",
+    "graphql-import": "^0.7.1",
+    "graphql-tag": "^2.10.1",
+    "graphql-yoga": "^1.18.1",
+    "ramda": "^0.26.1"
+  }
+}
