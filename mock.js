@@ -8,6 +8,7 @@ export const typeDef = gql`
     campaigns(from: Date, to: Date): [Campaign]
   }
   type Campaign {
+    id: ID!
     name: String
     type: AdType
     targeting: Targeting
@@ -19,7 +20,7 @@ export const typeDef = gql`
     cpc: Float
     orders: Int
     sales: Float
-    aocs: Float
+    acos: Float
     portfolio: String
   }
   enum Targeting {
@@ -40,6 +41,7 @@ export const resolvers = {
     },
   },
   Campaign: { 
+    id: () => casual.uuid,
     name: () => casual.catch_phrase + ' campaign',
     type: () => Math.random() >= 0.5 ? 'SP' : 'SB',
     targeting: () => Math.random() >= 0.5 ? 'Manual' : 'Automatic',
@@ -51,7 +53,7 @@ export const resolvers = {
     cpc: () => casual.double(0.1, 2.5),
     orders: () => casual.integer(100, 300),
     sales: () => casual.integer(100, 10000),
-    aocs: () =>casual.double(0.05, 0.021),
+    acos: () =>casual.double(0.05, 0.021),
     portfolio: () => 'Demo Portfolio'
   },
   Date: new GraphQLScalarType({
