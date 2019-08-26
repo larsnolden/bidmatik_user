@@ -1,0 +1,44 @@
+type Campaign {
+  id: ID!
+  name: String!
+  adType: AdType!
+  targeting: Targeting!
+  budget: Float!
+  portfolio: String
+  # Reduce all samples in requested time into one sample
+  CampaignPerformanceReduced(from: Date!, to: Date!): CampaignPerformance 
+  # Percent change of data compared to previous period
+  CampaignPerformanceDelta(from: Date!, to: Date!): CampaignPerformancePercent
+}
+
+type CampaignPerformancePercent {
+  impressions: Float
+  clicks: Float
+  ctr: Float
+  spend: Float
+  orders: Float
+  revenue: Float
+  acos: Float
+  absoluteAcos: Float
+}
+
+type CampaignPerformance {
+  impressions: Int
+  clicks: Int
+  ctr: Float
+  spend: Int
+  orders: Int
+  revenue: Int
+  acos: Float
+  absoluteAcos: Float
+}
+
+enum AdType {
+  SP
+  SB
+}
+
+enum Targeting {
+  Automatic
+  Manual
+}

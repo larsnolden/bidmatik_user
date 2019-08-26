@@ -1,0 +1,42 @@
+# import Campaign from "../campaign/campaignSchema.graphql"
+# import Date from "../customScalar/dateSchema.graphql"
+
+type SellerProfile {
+  id: ID!
+  name: String!
+  countryCode: CountryCode!
+  # include all campaigns that have to report any data in that time window
+  Campaigns(from: Date!, to: Date!): [Campaign]!
+  # Reduce all samples in requested time into one sample
+  ProfilePerformanceReduced(from: Date!, to: Date!): ProfilePerformance!
+  # Return all samples in requested time
+  ProfilePerformance(from: Date!, to: Date!): [ProfilePerformance]!
+}
+
+type ProfilePerformance {
+  date: Date
+  impressions: Int
+  clicks: Int
+  ctr: Float
+  spend: Int
+  cpc: Float
+  orders: Int
+  revenue: Int
+  acos: Float
+  absoluteRevenue: Int
+  absoluteAcos: Float
+}
+
+extend type Query {
+  SellerProfiles: [SellerProfile]!
+  SellerProfile(id: ID!): SellerProfile
+}
+
+enum CountryCode {
+  US
+  MX
+  CA
+  DE
+  UK
+  IT
+}

@@ -1,0 +1,7 @@
+type AuthToken {
+  token: String!
+}
+
+extend type Mutation {
+  createSession(authCode: String!): AuthToken!
+}

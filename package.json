@@ -10,11 +10,18 @@
   "author": "lars@bidmatik.com",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.19.0",
+    "bidmatikDep": "git+https://3ac9666a8113df6bd51c4a47cc9a489d7eae01e4:x-oauth-basic@github.com/larsnolden/bidmatik_dep.git#master",
     "casual": "^1.6.2",
+    "dotenv": "^8.1.0",
     "esm": "^3.2.25",
-    "graphql-import": "^0.7.1",
     "graphql-tag": "^2.10.1",
     "graphql-yoga": "^1.18.1",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.19.2",
+    "lodash": "^4.17.15",
+    "pg": "^7.12.1",
+    "query-string": "^6.8.2",
     "ramda": "^0.26.1"
   }
 }

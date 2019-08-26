@@ -1,0 +1,18 @@
+type UserFilterDates {
+  id: ID!
+  from: Date!
+  to: Date!
+}
+
+extend type Query {
+  UserFilterDates: UserFilterDates
+}
+
+input UserFilterDatesInput {
+  from: Date!
+  to: Date!
+}
+
+extend type Mutation {
+  SetUserFilterDates(input: UserFilterDatesInput!): UserFilterDates!
+}
