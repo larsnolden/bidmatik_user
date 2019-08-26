@@ -16,15 +16,22 @@ const getSellerProfile = async (db, profileId) => {
   }
 };
 
-const getCampaigns = async (knex, profileId, from, to) => {
-  const campaigns = await knex('campaign_report').where(keysToSnakeCase({ profileId })).whereRaw(`date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}`).then(res => listToCamelCase(res));
-  return campaigns.map(campaign => ({
-    ...campaign,
-    name: campaign.campaignName,
-    id: campaign.campaignId,
-    budget: campaign.campaignBudget
-  }));
-}
+const getCampaigns = (knex, profileId, from, to) => knex.raw(`
+  select
+    max(campaign_name) as name,
+    max(campaign_id) as id,
+    max(campaign_budget) as budget
+  from "campaign_report" where "profile_id" = '${profileId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+  group by campaign_id
+`).then(res => res.rows);
+// {
+//   console.log(knex('campaign_report').select("max(campaign_name) as name, max(campaign_id) as id, max(campaign_budget) as budget").where(keysToSnakeCase({ profileId })).whereRaw(`date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}`).groupBy('campaign_id').toString())
+//   const campaigns = await knex('campaign_report').select('max(campaign_name) as name', 'max(campaign_id) as id', 'max(campaign_budget) as budget').where(keysToSnakeCase({ profileId })).whereRaw(`date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}`).groupBy('campaign_id').then(res => listToCamelCase(res));
+//   return campaigns;
+//   return campaigns.map(campaign => ({
+//     ...campaign,
+//   }));
+// }
 
 const getProfilePerformanceReduced = (knex, profileId, from, to) => knex.schema.raw(`
   select
