@@ -6,11 +6,11 @@ type SellerProfile {
   name: String!
   countryCode: CountryCode!
   # include all campaigns that have to report any data in that time window
-  Campaigns(from: Date!, to: Date!): [Campaign]!
+  Campaigns(from: Date, to: Date): [Campaign]!
   # Reduce all samples in requested time into one sample
-  ProfilePerformanceReduced(from: Date!, to: Date!): ProfilePerformance!
+  ProfilePerformanceReduced(from: Date, to: Date): ProfilePerformance!
   # Return all samples in requested time
-  ProfilePerformance(from: Date!, to: Date!): [ProfilePerformance]!
+  ProfilePerformance(from: Date, to: Date): [ProfilePerformance]!
 }
 
 type ProfilePerformance {

@@ -16,7 +16,7 @@ const getSellerProfile = async (db, profileId) => {
   }
 };
 
-const getCampaigns = (knex, profileId, from, to) => knex.raw(`
+const getCampaigns = ({ knex, profileId, from, to }) => knex.raw(`
   select
     max(campaign_name) as name,
     max(campaign_id) as id,
@@ -24,16 +24,8 @@ const getCampaigns = (knex, profileId, from, to) => knex.raw(`
   from "campaign_report" where "profile_id" = '${profileId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
   group by campaign_id
 `).then(res => res.rows);
-// {
-//   console.log(knex('campaign_report').select("max(campaign_name) as name, max(campaign_id) as id, max(campaign_budget) as budget").where(keysToSnakeCase({ profileId })).whereRaw(`date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}`).groupBy('campaign_id').toString())
-//   const campaigns = await knex('campaign_report').select('max(campaign_name) as name', 'max(campaign_id) as id', 'max(campaign_budget) as budget').where(keysToSnakeCase({ profileId })).whereRaw(`date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}`).groupBy('campaign_id').then(res => listToCamelCase(res));
-//   return campaigns;
-//   return campaigns.map(campaign => ({
-//     ...campaign,
-//   }));
-// }
 
-const getProfilePerformanceReduced = (knex, profileId, from, to) => knex.schema.raw(`
+const getProfilePerformanceReduced = ({ knex, profileId, from, to }) => knex.schema.raw(`
   select
     sum(sub.clicks) as clicks,
     sum(sub.impressions) as impressions,
@@ -58,7 +50,7 @@ const getProfilePerformanceReduced = (knex, profileId, from, to) => knex.schema.
   ) as sub
 `).then(res => res.rows[0]);
 
-const getProfilePerformanceAll = (knex, profileId, from, to) => knex.schema.raw(`
+const getProfilePerformanceAll = ({ knex, profileId, from, to }) => knex.schema.raw(`
   select
     floor(max(clicks)) as clicks,
     floor(max(impressions)) as impressions,
@@ -79,8 +71,8 @@ export default {
     SellerProfile: async (_, { id: profileId }, { handler }) => await getSellerProfile(handler.db, profileId),
   },
   SellerProfile: {
-    Campaigns: async ({ id: profileId }, { from, to }, { handler }) => await getCampaigns(handler.knex, profileId, from, to),
-    ProfilePerformanceReduced: async ({ id: profileId }, { from, to }, { handler }) => await getProfilePerformanceReduced(handler.knex, profileId, from, to),
-    ProfilePerformance: async ({ id: profileId }, { from, to }, { handler }) => await getProfilePerformanceAll(handler.knex, profileId, from, to)
+    Campaigns: async ({ id: profileId }, { from, to }, { handler, user }) => await getCampaigns({ knex: handler.knex, profileId, from: from || user.filterDateFrom, to: to || user.filterDateTo }),
+    ProfilePerformanceReduced: async ({ id: profileId }, { from, to }, { handler, user }) => await getProfilePerformanceReduced({ knex: handler.knex, profileId, from: from || user.filterDateFrom, to: to || user.filterDateTo }),
+    ProfilePerformance: async ({ id: profileId }, { from, to }, { handler, user }) => await getProfilePerformanceAll({ knex: handler.knex, profileId, from: from || user.filterDateFrom, to: to || user.filterDateTo })
   }
 }

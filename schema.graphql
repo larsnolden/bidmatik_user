@@ -20,20 +20,9 @@ extend type Mutation {
   budget: Float!
   portfolio: String
   # Reduce all samples in requested time into one sample
-  CampaignPerformanceReduced(from: Date!, to: Date!): CampaignPerformance 
+  CampaignPerformanceReduced(from: Date, to: Date): CampaignPerformance 
   # Percent change of data compared to previous period
-  CampaignPerformanceDelta(from: Date!, to: Date!): CampaignPerformancePercent
-}
-
-type CampaignPerformancePercent {
-  impressions: Float
-  clicks: Float
-  ctr: Float
-  spend: Float
-  orders: Float
-  revenue: Float
-  acos: Float
-  absoluteAcos: Float
+  CampaignPerformanceDelta(from: Date, to: Date): CampaignPerformancePercent
 }
 
 type CampaignPerformance {
@@ -43,6 +32,17 @@ type CampaignPerformance {
   spend: Int
   orders: Int
   revenue: Int
+  acos: Float
+  absoluteAcos: Float
+}
+
+type CampaignPerformancePercent {
+  impressions: Float
+  clicks: Float
+  ctr: Float
+  spend: Float
+  orders: Float
+  revenue: Float
   acos: Float
   absoluteAcos: Float
 }
@@ -64,11 +64,11 @@ type SellerProfile {
   name: String!
   countryCode: CountryCode!
   # include all campaigns that have to report any data in that time window
-  Campaigns(from: Date!, to: Date!): [Campaign]!
+  Campaigns(from: Date, to: Date): [Campaign]!
   # Reduce all samples in requested time into one sample
-  ProfilePerformanceReduced(from: Date!, to: Date!): ProfilePerformance!
+  ProfilePerformanceReduced(from: Date, to: Date): ProfilePerformance!
   # Return all samples in requested time
-  ProfilePerformance(from: Date!, to: Date!): [ProfilePerformance]!
+  ProfilePerformance(from: Date, to: Date): [ProfilePerformance]!
 }
 
 type ProfilePerformance {
