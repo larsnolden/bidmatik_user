@@ -86,7 +86,18 @@ const getCampaignPerformanceDelta = async (knex, campaignId, dates) => {
   }, performanceSelectedPeriod, performancePreviousPeriod)
 };
 
+const getCampagin = (knex, campaignId) => knex.raw(`
+  select
+    campaign_id as id,
+    campaign_name as name,
+    campaign_budget as budget
+  where campaign_id = '${campaignId}';
+`)
+
 export default {
+  Query: {
+    Campaign: async (parent, { id }, { handler }) => getCampagin(handler.knex, campaignId)
+  },
   Campaign: {
     CampaignPerformanceDelta: async ({ id: campaignId }, { from, to }, { handler, user }) => { 
       const dates = createComparisonTimePeriods(from || user.filterDateFrom, to || user.filterDateTo);

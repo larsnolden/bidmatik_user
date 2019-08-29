@@ -1,3 +1,8 @@
+extend type Query {
+  Campaign(id: ID!): Campaign
+}
+
+
 type Campaign {
   id: ID!
   name: String!
