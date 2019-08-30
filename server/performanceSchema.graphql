@@ -1,0 +1,24 @@
+type Performance {
+  date: Date
+  impressions: Int
+  clicks: Int
+  ctr: Float
+  spend: Int
+  cpc: Float
+  orders: Int
+  revenue: Int
+  acos: Float
+  absoluteRevenue: Int
+  absoluteAcos: Float
+}
+
+type PerformancePercent {
+  impressions: Float
+  clicks: Float
+  ctr: Float
+  spend: Float
+  orders: Float
+  revenue: Float
+  acos: Float
+  absoluteAcos: Float
+}

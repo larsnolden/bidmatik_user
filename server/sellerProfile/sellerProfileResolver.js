@@ -6,6 +6,8 @@ const getSellerProfiles = async (db, userId) => {
   return sellerProfiles.map(sellerProfile => ({
     ...sellerProfile,
     id: sellerProfile.profileId,
+    name: sellerProfile.profileName,
+    countryCode: sellerProfile.countryCode,
   }))
 };
 const getSellerProfile = async (db, profileId) => {
@@ -13,6 +15,8 @@ const getSellerProfile = async (db, profileId) => {
   return {
     ...sellerProfile,
     id: sellerProfile.profileId,
+    name: sellerProfile.profileName,
+    countryCode: sellerProfile.countryCode,
   }
 };
 
@@ -65,10 +69,42 @@ const getProfilePerformanceAll = ({ knex, profileId, from, to }) => knex.schema.
   order by date
 `).then(res => res.rows);
 
+const getActiveSellerProfile = async (db, sellerProfileId, userId) => {
+  const { activeSellerProfileId } = await db.user.find({ userId });
+  if (!activeSellerProfileId) {
+    //  no default activeProfileId set
+    const firstSellerProfile = await db.sellerProfile.find({ userId }).then(res => res[0]);
+    await db.user.set({ userId, activeSellerProfileId: firstSellerProfile.profileId });
+    return {
+      ...firstSellerProfile,
+      id: firstSellerProfile.profileId,
+      name: firstSellerProfile.profileName,
+      countryCode: firstSellerProfile.countryCode,
+    };
+  }
+  const activeSellerProfile = await getSellerProfile(db, userId);
+  console.log('activeSellerProfile', activeSellerProfile)
+  return activeSellerProfile;
+}
+
+const SetActiveSellerProfile = async (db, profileId, userId) => {
+  await db.user.set({
+    userId,
+    activeSellerProfileId: profileId,
+  });
+  const sellerProfile = await getSellerProfile(db, profileId);
+  return sellerProfile;
+}
+
 export default {
   Query: {
     SellerProfiles: async (_, __, { handler, user }) => await getSellerProfiles(handler.db, user.id),
-    SellerProfile: async (_, { id: profileId }, { handler }) => await getSellerProfile(handler.db, profileId),
+    //  return activeSellerProfile if no id specified
+    SellerProfile: async (_, { id: profileId }, { handler}) => await getSellerProfile(handler.db, profileId),
+    ActiveSellerProfile: async (_, __, { handler, user }) => await getActiveSellerProfile(handler.db, user.activeProfileId, user.userId),
+  },
+  Mutation: {
+    SetActiveSellerProfile: async (_, { id: profileId }, { handler, user }) => await SetActiveSellerProfile(handler.db, profileId, user.userId)
   },
   SellerProfile: {
     Campaigns: async ({ id: profileId }, { from, to }, { handler, user }) => await getCampaigns({ knex: handler.knex, profileId, from: from || user.filterDateFrom, to: to || user.filterDateTo }),

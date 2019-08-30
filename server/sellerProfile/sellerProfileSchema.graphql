@@ -8,28 +8,20 @@ type SellerProfile {
   # include all campaigns that have to report any data in that time window
   Campaigns(from: Date, to: Date): [Campaign]!
   # Reduce all samples in requested time into one sample
-  ProfilePerformanceReduced(from: Date, to: Date): ProfilePerformance!
+  ProfilePerformanceReduced(from: Date, to: Date): Performance!
   # Return all samples in requested time
-  ProfilePerformance(from: Date, to: Date): [ProfilePerformance]!
-}
-
-type ProfilePerformance {
-  date: Date
-  impressions: Int
-  clicks: Int
-  ctr: Float
-  spend: Int
-  cpc: Float
-  orders: Int
-  revenue: Int
-  acos: Float
-  absoluteRevenue: Int
-  absoluteAcos: Float
+  ProfilePerformance(from: Date, to: Date): [Performance]!
 }
 
 extend type Query {
-  SellerProfiles: [SellerProfile]!
-  SellerProfile(id: ID!): SellerProfile
+  SellerProfiles: [SellerProfile!]!
+  # return activeSellerProfile if no id specified
+  SellerProfile(id: ID!): SellerProfile!
+  ActiveSellerProfile: SellerProfile!
+}
+
+extend type Mutation {
+  SetActiveSellerProfile(id: ID!): SellerProfile!
 }
 
 enum CountryCode {

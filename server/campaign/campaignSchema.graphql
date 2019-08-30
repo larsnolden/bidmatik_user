@@ -11,31 +11,9 @@ type Campaign {
   budget: Float!
   portfolio: String
   # Reduce all samples in requested time into one sample
-  CampaignPerformanceReduced(from: Date, to: Date): CampaignPerformance 
+  CampaignPerformanceReduced(from: Date, to: Date): Performance 
   # Percent change of data compared to previous period
-  CampaignPerformanceDelta(from: Date, to: Date): CampaignPerformancePercent
-}
-
-type CampaignPerformance {
-  impressions: Int
-  clicks: Int
-  ctr: Float
-  spend: Int
-  orders: Int
-  revenue: Int
-  acos: Float
-  absoluteAcos: Float
-}
-
-type CampaignPerformancePercent {
-  impressions: Float
-  clicks: Float
-  ctr: Float
-  spend: Float
-  orders: Float
-  revenue: Float
-  acos: Float
-  absoluteAcos: Float
+  CampaignPerformanceDelta(from: Date, to: Date): PerformancePercent
 }
 
 enum AdType {
