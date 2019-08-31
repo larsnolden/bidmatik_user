@@ -12,6 +12,7 @@ const getSellerProfiles = async (db, userId) => {
 };
 const getSellerProfile = async (db, profileId) => {
   const sellerProfile = await db.sellerProfile.find({ profileId }).then(res => res[0]);
+  console.log('get seller profile', sellerProfile.profileId)
   return {
     ...sellerProfile,
     id: sellerProfile.profileId,
@@ -69,11 +70,13 @@ const getProfilePerformanceAll = ({ knex, profileId, from, to }) => knex.schema.
   order by date
 `).then(res => res.rows);
 
-const getActiveSellerProfile = async (db, sellerProfileId, userId) => {
-  const { activeSellerProfileId } = await db.user.find({ userId });
-  if (!activeSellerProfileId) {
+const getActiveSellerProfile = async (db, profileId, userId) => {
+  console.log('Lookup Active Seller Profile', profileId);
+  const activeSellerProfile = await db.sellerProfile.find({ profileId }).then(res => res[0]);
+  if (!activeSellerProfile) {
     //  no default activeProfileId set
     const firstSellerProfile = await db.sellerProfile.find({ userId }).then(res => res[0]);
+    console.log('No Active Seller Profile Found, SET NEW', firstSellerProfile)
     await db.user.set({ userId, activeSellerProfileId: firstSellerProfile.profileId });
     return {
       ...firstSellerProfile,
@@ -82,9 +85,13 @@ const getActiveSellerProfile = async (db, sellerProfileId, userId) => {
       countryCode: firstSellerProfile.countryCode,
     };
   }
-  const activeSellerProfile = await getSellerProfile(db, userId);
-  console.log('activeSellerProfile', activeSellerProfile)
-  return activeSellerProfile;
+  console.log('Active Seller Profile Found', activeSellerProfile.profileId);
+  return {
+    ...activeSellerProfile,
+    id: activeSellerProfile.profileId,
+    name: activeSellerProfile.profileName,
+    countryCode: activeSellerProfile.countryCode,
+  };;
 }
 
 const SetActiveSellerProfile = async (db, profileId, userId) => {
@@ -92,6 +99,7 @@ const SetActiveSellerProfile = async (db, profileId, userId) => {
     userId,
     activeSellerProfileId: profileId,
   });
+  console.log('set new seller profile', profileId);
   const sellerProfile = await getSellerProfile(db, profileId);
   return sellerProfile;
 }
@@ -100,8 +108,8 @@ export default {
   Query: {
     SellerProfiles: async (_, __, { handler, user }) => await getSellerProfiles(handler.db, user.id),
     //  return activeSellerProfile if no id specified
-    SellerProfile: async (_, { id: profileId }, { handler}) => await getSellerProfile(handler.db, profileId),
-    ActiveSellerProfile: async (_, __, { handler, user }) => await getActiveSellerProfile(handler.db, user.activeProfileId, user.userId),
+    SellerProfile: async (_, { id: profileId }, { handler, user }) => profileId ? await getSellerProfile(handler.db, profileId) : await getActiveSellerProfile(handler.db, user.activeSellerProfileId, user.userId),
+    ActiveSellerProfile: async (_, __, { handler, user }) => await getActiveSellerProfile(handler.db, user.activeSellerProfileId, user.userId),
   },
   Mutation: {
     SetActiveSellerProfile: async (_, { id: profileId }, { handler, user }) => await SetActiveSellerProfile(handler.db, profileId, user.userId)

@@ -16,7 +16,7 @@ type SellerProfile {
 extend type Query {
   SellerProfiles: [SellerProfile!]!
   # return activeSellerProfile if no id specified
-  SellerProfile(id: ID!): SellerProfile!
+  SellerProfile(id: ID): SellerProfile!
   ActiveSellerProfile: SellerProfile!
 }
 
