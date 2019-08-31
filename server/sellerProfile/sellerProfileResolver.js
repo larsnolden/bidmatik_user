@@ -38,22 +38,24 @@ const getProfilePerformanceReduced = ({ knex, profileId, from, to }) => knex.sch
     sum(sub.spend) as spend,
     sum(sub.orders) as orders,
     sum(sub.revenue) as revenue,
-    avg(sub.acos) as acos
+    sum(sub.spend)/NULLIF(sum(sub.revenue),0) as acos
   from
   (
     select
-      max(clicks) as clicks,
-      max(impressions) as impressions,
+      sum(clicks) as clicks,
+      sum(impressions) as impressions,
       avg(clicks)/NULLIF(avg(impressions),0) as ctr,
-      max(cost) as spend,
-      max(attributed_units_ordered_1_d) as orders,
-      max(attributed_sales_1_d_same_sku) as revenue,
-      avg(cost/NULLIF(attributed_sales_1_d_same_sku,0)) as acos,
+      sum(cost) as spend,
+      sum(attributed_units_ordered_1_d) as orders,
+      sum(attributed_sales_1_d_same_sku) as revenue,
       date
     from "campaign_report" where "profile_id" = '${profileId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
     group by date
   ) as sub
-`).then(res => res.rows[0]);
+`).then(res => {
+  console.log(res.rows[0])
+  return res.rows[0];
+});
 
 const getProfilePerformanceAll = ({ knex, profileId, from, to }) => knex.schema.raw(`
   select

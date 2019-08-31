@@ -10,47 +10,21 @@ const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) => knex.raw(
     sum(sub.spend) as spend,
     sum(sub.orders) as orders,
     sum(sub.revenue) as revenue,
-    avg(sub.acos) as acos
+    sum(sub.spend)/NULLIF(sum(revenue),0) as acos
   from
   (
     select
-      max(clicks) as clicks,
-      max(impressions) as impressions,
+      sum(clicks) as clicks,
+      sum(impressions) as impressions,
       avg(clicks)/NULLIF(avg(impressions),0) as ctr,
-      max(cost) as spend,
-      max(attributed_units_ordered_1_d) as orders,
-      max(attributed_sales_1_d_same_sku) as revenue,
-      avg(cost/NULLIF(attributed_sales_1_d_same_sku,0)) as acos,
+      sum(cost) as spend,
+      sum(attributed_units_ordered_1_d) as orders,
+      sum(attributed_sales_1_d_same_sku) as revenue,
       date
     from "campaign_report" where "campaign_id" = '${campaignId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
     group by date
   ) as sub
 `).then(res => res.rows[0]);
-
-// const CampaignPerformanceReduced = (knex, campaignId, from, to) => knex.schema.raw(`
-//   select
-//     sum(sub.clicks) as clicks,
-//     sum(sub.impressions) as impressions,
-//     avg(sub.ctr) as ctr,
-//     sum(sub.spend) as spend,
-//     sum(sub.orders) as orders,
-//     sum(sub.revenue) as revenue,
-//     avg(sub.acos) as acos
-//   from
-//   (
-//     select
-//       max(clicks) as clicks,
-//       max(impressions) as impressions,
-//       avg(clicks)/NULLIF(avg(impressions),0) as ctr,
-//       max(cost) as spend,
-//       max(attributed_units_ordered_1_d) as orders,
-//       max(attributed_sales_1_d_same_sku) as revenue,
-//       avg(cost/NULLIF(attributed_sales_1_d_same_sku,0)) as acos,
-//       date
-//     from "campaign_report" where "campaign_id" = '${campaignId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-//     group by date
-//   ) as sub
-// `).then(res => res.rows[0]);
 
 function createComparisonTimePeriods (from, to) {
   //  creates 2 pairs of dates from 1 pair of dates

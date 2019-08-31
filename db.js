@@ -29,7 +29,7 @@ export const knex = knexBuilder({
   // debug: true,
   client: 'pg',
   version: '9.6',
-  connection: process.env.NODE_ENV === 'production' ? productionConnection : developmentConnection,
+  connection: process.env.NODE_ENV === 'production' ? productionConnection : developmentCloudConnection,
 });
 
 export default dbBuilder(knex);

@@ -3,12 +3,12 @@ type Performance {
   impressions: Int
   clicks: Int
   ctr: Float
-  spend: Int
+  spend: Float
   cpc: Float
   orders: Int
-  revenue: Int
+  revenue: Float
   acos: Float
-  absoluteRevenue: Int
+  absoluteRevenue: Float
   absoluteAcos: Float
 }
 
