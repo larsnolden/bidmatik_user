@@ -30,5 +30,4 @@ const RootSchema = `
 `;
 
 export const typeDefs = [RootSchema, AuthSchema, DateSchema, PerformanceSchema, CampaignSchema, SellerProfileSchema, UserFilterDatesSchema].join(' ');
-fs.writeFile('./schema.graphql', typeDefs);
 export const resolvers = merge([AuthResolver, DateResolver, CampaignResolver, UserFilterDatesResolver, SellerProfileResolver]);
