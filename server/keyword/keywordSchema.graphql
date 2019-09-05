@@ -1,0 +1,14 @@
+extend type Query {
+  Keyword(id: ID!): Keyword
+}
+
+type Keyword {
+  id: ID!
+  term: String!
+  # we want to display the current bid
+  # and the average bid over the selected time period
+  # (bid is not a reported value only, it will be modifiable)
+  bid: Float!
+  KeywordPerformanceDelta(from: Date, to: Date): PerformancePercent,
+  KeywordPerformanceReduced(from: Date, to: Date): Performance
+}

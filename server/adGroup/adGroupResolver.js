@@ -1,8 +1,18 @@
 import moment from 'moment';
 import * as R from 'ramda';
 
+const getAdGroup = ({ knex, adGroupId }) => knex.raw(`
+  Select
+    ad_group_id as id,
+    ad_group_name as name
+  from ad_group_report
+    where ad_group_id = '${adGroupId}'
+  order by date desc
+  limit 1
+`).then(res => res.rows[0]);
 
-const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) => knex.raw(`
+
+const adGroupPerformanceReduced = ({ knex, adGroupId, from, to }) => knex.raw(`
   select
     sum(sub.clicks) as clicks,
     sum(sub.impressions) as impressions,
@@ -21,7 +31,7 @@ const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) => knex.raw(
       sum(attributed_units_ordered_1_d) as orders,
       sum(attributed_sales_1_d_same_sku) as revenue,
       date
-    from "campaign_report" where "campaign_id" = '${campaignId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+    from "ad_group_report" where "ad_group_id" = '${adGroupId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
     group by date
   ) as sub
 `).then(res => res.rows[0]);
@@ -45,9 +55,9 @@ function createComparisonTimePeriods (from, to) {
 }
 
 //  get percent change from fromDate to doDate metrics
-const getCampaignPerformanceDelta = async (knex, campaignId, dates) => {
-  const performanceSelectedPeriod = await CampaignPerformanceReduced({ knex, campaignId, from: dates.period.from, to: dates.period.to });
-  const performancePreviousPeriod = await CampaignPerformanceReduced({ knex, campaignId, from: dates.prePeriod.from, to: dates.prePeriod.to });
+const getAdGroupPerformanceDelta = async ({ knex, adGroupId, dates }) => {
+  const performanceSelectedPeriod = await adGroupPerformanceReduced({ knex, adGroupId, from: dates.period.from, to: dates.period.to });
+  const performancePreviousPeriod = await adGroupPerformanceReduced({ knex, adGroupId, from: dates.prePeriod.from, to: dates.prePeriod.to });
   
   //  merge metricsFrom with metricsTo into
   //  one obj with percent change as values
@@ -60,44 +70,52 @@ const getCampaignPerformanceDelta = async (knex, campaignId, dates) => {
   }, performanceSelectedPeriod, performancePreviousPeriod)
 };
 
-const getCampagin = (knex, campaignId) => knex.raw(`
+const getKeywords = ({
+  knex,
+  adGroupId,
+  from,
+  to
+}) => { 
+  console.log('adgroupId', adGroupId);
+  return knex.raw(`
   select
-    campaign_id as id,
-    campaign_name as name,
-    campaign_budget as budget
-  from campaign_report
-    where campaign_id = '${campaignId}'
-  order by date desc
-  limit 1;
-`).then(res => res.rows[0]);
-
-const getAdGroups = ({ knex, campaignId, from, to }) => knex.raw(`
-  select
-    max(ad_group_name) as name,
-    max(ad_group_id) as id
-  from ad_group_report where "campaign_id" = '${campaignId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-  group by ad_group_id
+    keyword_id as id,
+    max(keyword_text) as term,
+    (select bid from active_keyword where keyword_id = parent.keyword_id order by date desc limit 1)
+  from active_keyword parent
+    where ad_group_id = '${adGroupId}'
+  and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+  group by keyword_id;
 `).then(res => res.rows);
+
+}
 
 
 export default {
   Query: {
-    Campaign: (parent, { id: campaignId }, { handler }) => getCampagin(handler.knex, campaignId)
-  },
-  Campaign: {
-    CampaignPerformanceDelta: async ({ id: campaignId }, { from, to }, { handler, user }) => { 
-      const dates = createComparisonTimePeriods(from || user.filterDateFrom, to || user.filterDateTo);
-      return getCampaignPerformanceDelta(handler.knex, campaignId, dates);
-    },
-    CampaignPerformanceReduced: async ({ id: campaignId }, { from, to }, { handler, user }) => await CampaignPerformanceReduced({
+    AdGroup: (parent, { id: adGroupId }, { handler }) => getAdGroup({
       knex: handler.knex,
-      campaignId,
+      adGroupId
+    }),
+  },
+  AdGroup: {
+    AdGroupPerformanceDelta: async ({ id: adGroupId }, { from, to }, { handler, user }) => { 
+      const dates = createComparisonTimePeriods(from || user.filterDateFrom, to || user.filterDateTo);
+      return getAdGroupPerformanceDelta({
+        knex: handler.knex,
+        adGroupId,
+        dates,
+      });
+    },
+    AdGroupPerformanceReduced: ({ id: adGroupId }, { from, to }, { handler, user }) => adGroupPerformanceReduced({
+      knex: handler.knex,
+      adGroupId,
       from: from || user.filterDateFrom,
       to: to || user.filterDateTo
     }),
-    AdGroups: async ({ id: campaignId }, { from, to }, { handler, user }) => await getAdGroups({
+    Keywords: ({ id: adGroupId }, { from, to }, { handler, user }) => getKeywords({
       knex: handler.knex,
-      campaignId,
+      adGroupId,
       from: from || user.filterDateFrom,
       to: to || user.filterDateTo
     })

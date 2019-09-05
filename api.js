@@ -19,6 +19,12 @@ const DateSchema = gqlLoader('./server/customScalar/dateSchema.graphql');
 import UserFilterDatesResolver from './server/UserFilterDates/UserFilterDatesResolver';
 const UserFilterDatesSchema = gqlLoader('./server/UserFilterDates/UserFilterDatesSchema.graphql');
 
+import AdGroupResolver from './server/adGroup/adGroupResolver';
+const AdGroupSchema = gqlLoader('./server/adGroup/adGroupSchema.graphql');
+
+import KeywordResolver from './server/keyword/keywordResolver';
+const KeywordSchema = gqlLoader('./server/keyword/keywordSchema.graphql');
+
 //  Root Schema, all others extend this
 const RootSchema = `
   type Query {
@@ -29,5 +35,5 @@ const RootSchema = `
   }
 `;
 
-export const typeDefs = [RootSchema, AuthSchema, DateSchema, PerformanceSchema, CampaignSchema, SellerProfileSchema, UserFilterDatesSchema].join(' ');
-export const resolvers = merge([AuthResolver, DateResolver, CampaignResolver, UserFilterDatesResolver, SellerProfileResolver]);
+export const typeDefs = [RootSchema, AuthSchema, DateSchema, PerformanceSchema, CampaignSchema, SellerProfileSchema, UserFilterDatesSchema, AdGroupSchema, KeywordSchema].join(' ');
+export const resolvers = merge([AuthResolver, DateResolver, CampaignResolver, UserFilterDatesResolver, SellerProfileResolver, AdGroupResolver, KeywordResolver]);

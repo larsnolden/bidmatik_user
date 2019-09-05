@@ -6,14 +6,12 @@ extend type Query {
 type Campaign {
   id: ID!
   name: String!
-  adType: AdType!
-  targeting: Targeting!
   budget: Float!
-  portfolio: String
   # Reduce all samples in requested time into one sample
   CampaignPerformanceReduced(from: Date, to: Date): Performance 
   # Percent change of data compared to previous period
   CampaignPerformanceDelta(from: Date, to: Date): PerformancePercent
+  AdGroups(from: Date, to: Date): [AdGroup]!
 }
 
 enum AdType {
