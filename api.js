@@ -35,5 +35,5 @@ const RootSchema = `
   }
 `;
 
-export const typeDefs = [RootSchema, AuthSchema, DateSchema, PerformanceSchema, CampaignSchema, SellerProfileSchema, UserFilterDatesSchema, AdGroupSchema, KeywordSchema].join(' ');
-export const resolvers = merge([AuthResolver, DateResolver, CampaignResolver, UserFilterDatesResolver, SellerProfileResolver, AdGroupResolver, KeywordResolver]);
+export const typeDefs = [RootSchema, AuthSchema, DateSchema, PerformanceSchema, CampaignSchema, SellerProfileSchema, UserFilterDatesSchema, KeywordSchema, AdGroupSchema].join(' ');
+export const resolvers = merge([AuthResolver, DateResolver, CampaignResolver, UserFilterDatesResolver, SellerProfileResolver, KeywordResolver, AdGroupResolver]);

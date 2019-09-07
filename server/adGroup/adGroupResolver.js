@@ -70,24 +70,36 @@ const getAdGroupPerformanceDelta = async ({ knex, adGroupId, dates }) => {
   }, performanceSelectedPeriod, performancePreviousPeriod)
 };
 
-const getKeywords = ({
+const getKeywords = async ({
   knex,
   adGroupId,
   from,
   to
-}) => { 
+}) => {
+  console.log('get Keywords');
   console.log('adgroupId', adGroupId);
-  return knex.raw(`
-  select
-    keyword_id as id,
-    max(keyword_text) as term,
-    (select bid from active_keyword where keyword_id = parent.keyword_id order by date desc limit 1)
-  from active_keyword parent
-    where ad_group_id = '${adGroupId}'
-  and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-  group by keyword_id;
-`).then(res => res.rows);
+  console.log('from', from);
+  console.log('to', to);
+  // return [{
+  //   bid: 0.41,
+  //   term: "testTerm",
+  //   id: "57220359035787"
+  // }]
 
+  const res = await knex.raw(`
+    select
+      distinct on (id)
+      keyword_id as id,
+      keyword_text as term,
+      bid
+    from active_keyword
+      where ad_group_id = '${adGroupId}' 
+      and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+      and bid is not null
+    order by id, date desc;
+  `)
+  console.log('res for getKeywords', res.rows);
+  return res.rows
 }
 
 

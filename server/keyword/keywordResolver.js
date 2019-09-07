@@ -1,7 +1,9 @@
 const getKeyword = ({
   knex,
   keywordId
-}) => knex.raw(`
+}) => { 
+  console.log('getKeyword')
+  return  knex.raw(`
   select
     report.keyword_id as id,
     report.keyword_text as term,
@@ -12,8 +14,19 @@ const getKeyword = ({
   order by active.date desc
   limit 1;
 `).then(res => res.rows[0]);
+}
 
-const getKeywordLatestBid = ({ knex, keywordId }) => knex.raw(`
+const getKeywordLatestBid = ({ knex, keywordId }) => { 
+  console.log('getKeywordLatestBid for', keywordId);
+  console.log( knex.raw(`
+  select
+    bid as bid
+  from active_keyword
+    where keyword_id = '${keywordId}'
+  order by date desc
+  limit 1;
+`).toString())
+  return knex.raw(`
   select
     bid as bid
   from active_keyword
@@ -21,14 +34,18 @@ const getKeywordLatestBid = ({ knex, keywordId }) => knex.raw(`
   order by date desc
   limit 1;
 `).then(res => res.rows[0].bid);
+}
 
-const getKeywordTerm = ({ knex, keywordId }) => knex.raw(`
+const getKeywordTerm = ({ knex, keywordId }) => { 
+  console.log('getKeywordTerm');
+  return knex.raw(`
   select
     keyword_text as term
   from active_keyword
     where keyword_id = '${keywordId}'
   limit 1;
 `).then(res => res.rows[0].term);;
+}
 
 export default {
   Query: {
