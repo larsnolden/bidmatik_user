@@ -23,13 +23,14 @@ const developmentCloudConnection = {
   user: process.env.DB_USER_PRODUCTION,
   password: process.env.DB_PASS_PRODUCTION,
   database: 'bidmatik'
-}
+};
 
 export const knex = knexBuilder({
   // debug: true,
   client: 'pg',
   version: '9.6',
-  connection: process.env.NODE_ENV === 'production' ? productionConnection : developmentCloudConnection,
+  connection:
+    process.env.NODE_ENV === 'production' ? productionConnection : developmentCloudConnection
 });
 
 export default dbBuilder(knex);

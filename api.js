@@ -6,7 +6,7 @@ const AuthSchema = gqlLoader('./authenticate/authenticateSchema.graphql');
 import { AuthResolver } from './authenticate/authenticate';
 
 const PerformanceSchema = gqlLoader('./server/performanceSchema.graphql');
-  
+
 import SellerProfileResolver from './server/sellerProfile/sellerProfileResolver';
 const SellerProfileSchema = gqlLoader('./server/sellerProfile/sellerProfileSchema.graphql');
 
@@ -35,5 +35,23 @@ const RootSchema = `
   }
 `;
 
-export const typeDefs = [RootSchema, AuthSchema, DateSchema, PerformanceSchema, CampaignSchema, SellerProfileSchema, UserFilterDatesSchema, KeywordSchema, AdGroupSchema].join(' ');
-export const resolvers = merge([AuthResolver, DateResolver, CampaignResolver, UserFilterDatesResolver, SellerProfileResolver, KeywordResolver, AdGroupResolver]);
+export const typeDefs = [
+  RootSchema,
+  AuthSchema,
+  DateSchema,
+  PerformanceSchema,
+  CampaignSchema,
+  SellerProfileSchema,
+  UserFilterDatesSchema,
+  KeywordSchema,
+  AdGroupSchema
+].join(' ');
+export const resolvers = merge([
+  AuthResolver,
+  DateResolver,
+  CampaignResolver,
+  UserFilterDatesResolver,
+  SellerProfileResolver,
+  AdGroupResolver,
+  KeywordResolver
+]);

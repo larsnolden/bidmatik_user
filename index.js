@@ -3,14 +3,11 @@ import moment from 'moment';
 import { GraphQLServer } from 'graphql-yoga';
 import db, { knex } from './db';
 import { authenticateSession } from './authenticate/authenticate';
-import {
-  typeDefs,
-  resolvers
-} from './api';
+import { typeDefs, resolvers } from './api';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// TODO: enrich context with db and knex => handler.db, handler.knex 
+// TODO: enrich context with db and knex => handler.db, handler.knex
 
 const server = new GraphQLServer({
   typeDefs,
@@ -27,11 +24,14 @@ const server = new GraphQLServer({
       handler: {
         db,
         knex
-      },
-    }
+      }
+    };
   }
 });
-server.start({
-  tracing: true,
-  playground: '/playground'
-}, () => console.log(`Server is listening on ${4000}`))
+server.start(
+  {
+    tracing: true,
+    playground: '/playground'
+  },
+  () => console.log(`Server is listening on ${4000}`)
+);

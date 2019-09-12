@@ -2,10 +2,15 @@ extend type Query {
   AdGroup(id: ID!): AdGroup
 }
 
+enum KeywordSortBy {
+  spend
+}
+
 type AdGroup {
   id: ID!
   name: String!
-  Keywords(from: Date, to: Date): [Keyword]!
+  Keywords(from: Date, to: Date, sortBy: KeywordSortBy): [Keyword]!
   AdGroupPerformanceReduced(from: Date, to: Date): Performance
   AdGroupPerformanceDelta(from: Date, to: Date): PerformancePercent
+  AdGroupPerformance(from: Date, to: Date): [Performance]
 }

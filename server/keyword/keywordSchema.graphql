@@ -2,6 +2,12 @@ extend type Query {
   Keyword(id: ID!): Keyword
 }
 
+enum MatchType {
+  exact
+  phrase
+  broad
+}
+
 type Keyword {
   id: ID!
   term: String!
@@ -9,6 +15,7 @@ type Keyword {
   # and the average bid over the selected time period
   # (bid is not a reported value only, it will be modifiable)
   bid: Float!
-  KeywordPerformanceDelta(from: Date, to: Date): PerformancePercent,
+  matchType: MatchType!
+  KeywordPerformanceDelta(from: Date, to: Date): PerformancePercent
   KeywordPerformanceReduced(from: Date, to: Date): Performance
 }
