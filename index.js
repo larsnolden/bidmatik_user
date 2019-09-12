@@ -32,5 +32,6 @@ const server = new GraphQLServer({
   }
 });
 server.start({
+  tracing: true,
   playground: '/playground'
 }, () => console.log(`Server is listening on ${4000}`))
