@@ -115,7 +115,6 @@ export default {
         from || user.filterDateFrom,
         to || user.filterDateTo
       );
-      console.log(dates);
       return getAdGroupPerformanceDelta({
         knex: handler.knex,
         adGroupId,

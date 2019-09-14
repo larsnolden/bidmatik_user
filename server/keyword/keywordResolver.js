@@ -8,36 +8,22 @@ const getKeyword = ({ knex, keywordId }) => {
   return knex
     .raw(
       `
-  select
-    report.keyword_id as id,
-    report.keyword_text as term,
-    active.bid as bid
-  from keyword_report report
-  join active_keyword active on report.keyword_id = active.keyword_id  
-    where report.keyword_id = '${keywordId}'
-  order by active.date desc
-  limit 1;
-`
+      select
+        report.keyword_id as id,
+        report.keyword_text as term,
+        active.bid as bid
+      from keyword_report report
+      join active_keyword active on report.keyword_id = active.keyword_id  
+        where report.keyword_id = '${keywordId}'
+      order by active.date desc
+      limit 1;
+    `
     )
     .then(res => res.rows[0]);
 };
 
 const getKeywordLatestBid = ({ knex, keywordId }) => {
   console.log('getKeywordLatestBid for', keywordId);
-  console.log(
-    knex
-      .raw(
-        `
-  select
-    bid as bid
-  from active_keyword
-    where keyword_id = '${keywordId}'
-  order by date desc
-  limit 1;
-`
-      )
-      .toString()
-  );
   return knex
     .raw(
       `
@@ -53,7 +39,7 @@ const getKeywordLatestBid = ({ knex, keywordId }) => {
 };
 
 const getKeywordTerm = ({ knex, keywordId }) => {
-  console.log('getKeywordTerm');
+  console.log('getKeywordTerm', keywordId);
   return knex
     .raw(
       `
@@ -94,18 +80,18 @@ const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
           sum(sub.spend)/NULLIF(sum(revenue),0) as acos
           from
           (
-          select
-            sum(clicks) as clicks,
-            sum(impressions) as impressions,
-            avg(clicks)/NULLIF(avg(impressions),0) as ctr,
-            sum(cost) as spend,
-            sum(attributed_units_ordered_1_d) as orders,
-            sum(attributed_sales_1_d_same_sku) as revenue,
-            date
-          from "keyword_report" where "keyword_id" = '${keywordId}' and date::INT between ${moment(
+            select
+              sum(clicks) as clicks,
+              sum(impressions) as impressions,
+              avg(clicks)/NULLIF(avg(impressions),0) as ctr,
+              sum(cost) as spend,
+              sum(attributed_units_ordered_1_d) as orders,
+              sum(attributed_sales_1_d_same_sku) as revenue,
+              date
+            from "keyword_report" where "keyword_id" = '${keywordId}' and date::INT between ${moment(
         from
       ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-          group by date
+            group by date
           ) as sub
       `
     )
@@ -150,12 +136,12 @@ export default {
         knex: handler.knex,
         keywordId
       }),
-    KeywordPerformanceReduced: ({ id: keywordId }, { from, to }, { handler }) =>
+    KeywordPerformanceReduced: ({ id: keywordId }, { from, to }, { handler, user }) =>
       getKeywordPerformanceReduced({
         knex: handler.knex,
         keywordId,
-        from,
-        to
+        from: from || user.filterDateFrom,
+        to: to || user.filterDateTo
       }),
     KeywordPerformanceDelta: ({ id: keywordId }, { from, to }, { handler, user }) => {
       const dates = createComparisonTimePeriods(
