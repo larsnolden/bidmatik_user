@@ -3,9 +3,8 @@ import moment from 'moment';
 import createComparisonTimePeriods from '../../utils/createComparisonTimePeriods';
 import createPerformanceDelta from '../../utils/createPerformanceDelta';
 
-const getKeyword = ({ knex, keywordId }) => {
-  console.log('getKeyword');
-  return knex
+const getKeyword = ({ knex, keywordId }) =>
+  knex
     .raw(
       `
       select
@@ -20,11 +19,9 @@ const getKeyword = ({ knex, keywordId }) => {
     `
     )
     .then(res => res.rows[0]);
-};
 
-const getKeywordLatestBid = ({ knex, keywordId }) => {
-  console.log('getKeywordLatestBid for', keywordId);
-  return knex
+const getKeywordLatestBid = ({ knex, keywordId }) =>
+  knex
     .raw(
       `
   select
@@ -36,11 +33,9 @@ const getKeywordLatestBid = ({ knex, keywordId }) => {
 `
     )
     .then(res => res.rows[0].bid);
-};
 
-const getKeywordTerm = ({ knex, keywordId }) => {
-  console.log('getKeywordTerm', keywordId);
-  return knex
+const getKeywordTerm = ({ knex, keywordId }) =>
+  knex
     .raw(
       `
   select
@@ -51,7 +46,6 @@ const getKeywordTerm = ({ knex, keywordId }) => {
 `
     )
     .then(res => res.rows[0].term);
-};
 
 const getKeywordMatchType = ({ knex, keywordId }) =>
   knex

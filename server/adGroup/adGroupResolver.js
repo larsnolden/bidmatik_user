@@ -1,5 +1,4 @@
 import moment from 'moment';
-import * as R from 'ramda';
 import createComparisonTimePeriods from '../../utils/createComparisonTimePeriods';
 import createPerformanceDelta from '../../utils/createPerformanceDelta';
 
@@ -60,8 +59,10 @@ const getAdGroupPerformanceDelta = async ({ knex, adGroupId, dates }) => {
   return createPerformanceDelta({ knex, getPerformance, dates });
 };
 
-const getKeywords = async ({ knex, adGroupId, from, to }) => {
-  const res = await knex.raw(`
+const getKeywords = async ({ knex, adGroupId, from, to }) =>
+  knex
+    .raw(
+      `
     select
       distinct on (id)
       keyword_id as id,
@@ -72,11 +73,11 @@ const getKeywords = async ({ knex, adGroupId, from, to }) => {
       where ad_group_id = '${adGroupId}' 
       and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
       and bid is not null
-    order by id, date desc;
-  `);
-  console.log('res for getKeywords', res.rows);
-  return res.rows;
-};
+    order by id, date desc
+    limit 25
+  `
+    )
+    .then(res => res.rows);
 
 const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
   knex

@@ -1,8 +1,10 @@
 import moment from 'moment';
 import * as R from 'ramda';
 
-
-const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) => knex.raw(`
+const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) =>
+  knex
+    .raw(
+      `
   select
     sum(sub.clicks) as clicks,
     sum(sub.impressions) as impressions,
@@ -21,12 +23,16 @@ const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) => knex.raw(
       sum(attributed_units_ordered_1_d) as orders,
       sum(attributed_sales_1_d_same_sku) as revenue,
       date
-    from "campaign_report" where "campaign_id" = '${campaignId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+    from "campaign_report" where "campaign_id" = '${campaignId}' and date::INT between ${moment(
+        from
+      ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
     group by date
   ) as sub
-`).then(res => res.rows[0]);
+`
+    )
+    .then(res => res.rows[0]);
 
-function createComparisonTimePeriods (from, to) {
+function createComparisonTimePeriods(from, to) {
   //  creates 2 pairs of dates from 1 pair of dates
   //  the new pair is of the same length as and before the intial date pair
   const periodFrom = from.clone();
@@ -34,33 +40,50 @@ function createComparisonTimePeriods (from, to) {
   const periodDurationDays = moment.duration(periodTo.diff(periodFrom)).asDays();
   return {
     prePeriod: {
-      to : periodTo.subtract(periodDurationDays, 'days'),
-      from: periodFrom.subtract(periodDurationDays, 'days'),
+      to: periodTo.subtract(periodDurationDays, 'days'),
+      from: periodFrom.subtract(periodDurationDays, 'days')
     },
     period: {
       to,
-      from,
-    },
-  }
+      from
+    }
+  };
 }
 
 //  get percent change from fromDate to doDate metrics
 const getCampaignPerformanceDelta = async (knex, campaignId, dates) => {
-  const performanceSelectedPeriod = await CampaignPerformanceReduced({ knex, campaignId, from: dates.period.from, to: dates.period.to });
-  const performancePreviousPeriod = await CampaignPerformanceReduced({ knex, campaignId, from: dates.prePeriod.from, to: dates.prePeriod.to });
-  
+  const performanceSelectedPeriod = await CampaignPerformanceReduced({
+    knex,
+    campaignId,
+    from: dates.period.from,
+    to: dates.period.to
+  });
+  const performancePreviousPeriod = await CampaignPerformanceReduced({
+    knex,
+    campaignId,
+    from: dates.prePeriod.from,
+    to: dates.prePeriod.to
+  });
+
   //  merge metricsFrom with metricsTo into
   //  one obj with percent change as values
-  return R.mergeWithKey((k, from, to) => {
-    // const percentChange = ((to - from) / from);
-    const percentChange = (from / to) - 1;
-    //  dont return infinitiy, null instead
-    if (percentChange === Infinity) return null;
-    return percentChange;
-  }, performanceSelectedPeriod, performancePreviousPeriod)
+  return R.mergeWithKey(
+    (k, from, to) => {
+      // const percentChange = ((to - from) / from);
+      const percentChange = from / to - 1;
+      //  dont return infinitiy, null instead
+      if (percentChange === Infinity) return null;
+      return percentChange;
+    },
+    performanceSelectedPeriod,
+    performancePreviousPeriod
+  );
 };
 
-const getCampagin = (knex, campaignId) => knex.raw(`
+const getCampagin = (knex, campaignId) =>
+  knex
+    .raw(
+      `
   select
     campaign_id as id,
     campaign_name as name,
@@ -69,37 +92,50 @@ const getCampagin = (knex, campaignId) => knex.raw(`
     where campaign_id = '${campaignId}'
   order by date desc
   limit 1;
-`).then(res => res.rows[0]);
+`
+    )
+    .then(res => res.rows[0]);
 
-const getAdGroups = ({ knex, campaignId, from, to }) => knex.raw(`
+const getAdGroups = ({ knex, campaignId, from, to }) =>
+  knex
+    .raw(
+      `
   select
     max(ad_group_name) as name,
     max(ad_group_id) as id
-  from ad_group_report where "campaign_id" = '${campaignId}' and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+  from ad_group_report where "campaign_id" = '${campaignId}' and date::INT between ${moment(
+        from
+      ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
   group by ad_group_id
-`).then(res => res.rows);
-
+`
+    )
+    .then(res => res.rows);
 
 export default {
   Query: {
     Campaign: (parent, { id: campaignId }, { handler }) => getCampagin(handler.knex, campaignId)
   },
   Campaign: {
-    CampaignPerformanceDelta: async ({ id: campaignId }, { from, to }, { handler, user }) => { 
-      const dates = createComparisonTimePeriods(from || user.filterDateFrom, to || user.filterDateTo);
+    CampaignPerformanceDelta: ({ id: campaignId }, { from, to }, { handler, user }) => {
+      const dates = createComparisonTimePeriods(
+        from || user.filterDateFrom,
+        to || user.filterDateTo
+      );
       return getCampaignPerformanceDelta(handler.knex, campaignId, dates);
     },
-    CampaignPerformanceReduced: async ({ id: campaignId }, { from, to }, { handler, user }) => await CampaignPerformanceReduced({
-      knex: handler.knex,
-      campaignId,
-      from: from || user.filterDateFrom,
-      to: to || user.filterDateTo
-    }),
-    AdGroups: async ({ id: campaignId }, { from, to }, { handler, user }) => await getAdGroups({
-      knex: handler.knex,
-      campaignId,
-      from: from || user.filterDateFrom,
-      to: to || user.filterDateTo
-    })
+    CampaignPerformanceReduced: ({ id: campaignId }, { from, to }, { handler, user }) =>
+      CampaignPerformanceReduced({
+        knex: handler.knex,
+        campaignId,
+        from: from || user.filterDateFrom,
+        to: to || user.filterDateTo
+      }),
+    AdGroups: ({ id: campaignId }, { from, to }, { handler, user }) =>
+      getAdGroups({
+        knex: handler.knex,
+        campaignId,
+        from: from || user.filterDateFrom,
+        to: to || user.filterDateTo
+      })
   }
-}
+};
