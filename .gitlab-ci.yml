@@ -1,0 +1,18 @@
+image: docker:latest
+services:
+  - docker:dind
+
+stages:
+  - build
+
+variables:
+  CONTAINER_IMAGE: registry.gitlab.com/bidmatik/user:${CI_COMMIT_SHORT_SHA}
+
+build:
+  stage: build
+  script:
+    - docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
+    - docker build -t ${CONTAINER_IMAGE} .
+    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE}
+    - docker tag ${CONTAINER_IMAGE} registry.gitlab.com/bidmatik/user:latest
+    - docker push ${CONTAINER_IMAGE}
