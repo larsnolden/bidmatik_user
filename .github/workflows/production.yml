@@ -35,7 +35,7 @@ jobs:
         args: push bidmatik/user
 
     - name: Update deployment file
-      run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|andrewsomething/static-example:'${TAG}'|' $GITHUB_WORKSPACE/config/deployment.yml
+      run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|bidmatik/user:'${TAG}'|' $GITHUB_WORKSPACE/config/deployment.yml
 
     - name: Save DigitalOcean kubeconfig
       uses: digitalocean/action-doctl@master
