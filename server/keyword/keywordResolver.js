@@ -102,6 +102,12 @@ const getKeywordPerformanceDelta = ({ knex, keywordId, dates }) => {
   return createPerformanceDelta({ knex, getPerformance, dates });
 };
 
+const getIsKeywordAutomated = ({ knex, keywordId }) => {
+  return knex('keyword')
+    .where({ keywordId })
+    .select('automated');
+};
+
 export default {
   Query: {
     Keyword: (parent, { id: keywordId }, { handler }) =>
@@ -127,6 +133,11 @@ export default {
     matchType: ({ id: keywordId, matchType }, args, { handler }) =>
       matchType ||
       getKeywordMatchType({
+        knex: handler.knex,
+        keywordId
+      }),
+    automated: ({ id: keywordId }, args, { handler }) =>
+      getIsKeywordAutomated({
         knex: handler.knex,
         keywordId
       }),

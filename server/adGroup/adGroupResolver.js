@@ -1,6 +1,11 @@
 import moment from 'moment';
 import createComparisonTimePeriods from '../../utils/createComparisonTimePeriods';
 import createPerformanceDelta from '../../utils/createPerformanceDelta';
+import { updateAccessToken } from 'bidmatikDep';
+import renameKeys from '../../utils/renameKeys';
+import * as R from 'ramda';
+
+import advertisingApi from '../../advertisingApi/api';
 
 const getAdGroup = ({ knex, adGroupId }) =>
   knex
@@ -59,25 +64,44 @@ const getAdGroupPerformanceDelta = async ({ knex, adGroupId, dates }) => {
   return createPerformanceDelta({ knex, getPerformance, dates });
 };
 
-const getKeywords = async ({ knex, adGroupId, from, to }) =>
+const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
+  console.log('user', user);
+  await updateAccessToken(user.userId, db);
+  const { accessToken, activeSellerProfileId: profileId } = user;
+  const keywords = await advertisingApi.getKeywordsByAdGroup({
+    adGroupId,
+    profileId,
+    accessToken
+  });
+
+  return R.map(
+    renameKeys({
+      keywordId: 'id',
+      keywordText: 'term'
+    })
+  )(keywords);
+
+  console.log('keywords', keywords);
+
   knex
     .raw(
       `
-    select
-      distinct on (id)
-      keyword_id as id,
-      keyword_text as term,
-      match_type as "matchType",
-      bid
-    from active_keyword
-      where ad_group_id = '${adGroupId}' 
-      and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-      and bid is not null
-    order by id, date desc
-    limit 25
-  `
+  select
+    distinct on (id)
+    keyword_id as id,
+    keyword_text as term,
+    match_type as "matchType",
+    bid
+  from active_keyword
+    where ad_group_id = '${adGroupId}' 
+    and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+    and bid is not null
+  order by id, date desc
+  limit 25
+`
     )
     .then(res => res.rows);
+};
 
 const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
   knex
@@ -139,6 +163,8 @@ export default {
     Keywords: ({ id: adGroupId }, { from, to }, { handler, user }) =>
       getKeywords({
         knex: handler.knex,
+        db: handler.db,
+        user,
         adGroupId,
         from: from || user.filterDateFrom,
         to: to || user.filterDateTo

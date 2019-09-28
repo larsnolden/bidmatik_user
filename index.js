@@ -1,14 +1,14 @@
 require('dotenv').config();
 import moment from 'moment';
 import { GraphQLServer } from 'graphql-yoga';
-import db, { knex as knexOriginal } from './db';
+import db, { knex } from './db';
 import { authenticateSession } from './authenticate/authenticate';
 import { typeDefs, resolvers } from './api';
 import traceKnex from './utils/traceKnex';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-const knex = traceKnex(knexOriginal);
+// knex = traceKnex(knex);
 
 const server = new GraphQLServer({
   typeDefs,

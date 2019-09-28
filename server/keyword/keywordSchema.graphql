@@ -8,6 +8,12 @@ enum MatchType {
   broad
 }
 
+enum KeywordState {
+  enabled
+  paused
+  archived
+}
+
 type Keyword {
   id: ID!
   term: String!
@@ -16,6 +22,8 @@ type Keyword {
   # (bid is not a reported value only, it will be modifiable)
   bid: Float!
   matchType: MatchType!
+  automated: Boolean!
+  state: KeywordState!
   KeywordPerformanceDelta(from: Date, to: Date): PerformancePercent
   KeywordPerformanceReduced(from: Date, to: Date): Performance
 }
