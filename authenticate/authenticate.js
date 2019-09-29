@@ -3,14 +3,15 @@ import jwt from 'jsonwebtoken';
 import qs from 'query-string';
 import db from '../db';
 
-const getApiUser = async (accessToken) =>  axios({
-  baseURL: 'https://api.amazon.com',
-  url: '/user/profile',
-  method: 'GET',
-  headers: {
-    'x-amz-access-token': accessToken
-  }
-}).then(res => res.data);
+const getApiUser = async accessToken =>
+  axios({
+    baseURL: 'https://api.amazon.com',
+    url: '/user/profile',
+    method: 'GET',
+    headers: {
+      'x-amz-access-token': accessToken
+    }
+  }).then(res => res.data);
 
 const createProductionSession = async authCode => {
   //  exchange client authentication code with user tokens
@@ -33,7 +34,7 @@ const createProductionSession = async authCode => {
 
   if (accessToken && refreshToken) {
     //  get user info through access token
-    { user_id: amazonUserId, email, name } = await axios({
+    const { user_id: amazonUserId, email, name } = await axios({
       baseURL: 'https://api.amazon.com',
       url: '/user/profile',
       method: 'GET',
@@ -41,22 +42,22 @@ const createProductionSession = async authCode => {
         'x-amz-access-token': accessToken
       }
     }).then(res => res.data);
-    
+
     if (amazonUserId) {
       //  check if the user already Exists or create a new one
-  
+
       //  remove unecessary parts of amazon user id
       const userId = amazonUserId.split('.')[2];
-  
+
       //  TODO: insert analytics
       console.log('user authentication', userId, email, name);
-  
+
       //  attempt to find user
       const user = await db.user.find({ userId }).then(res => res[0]);
       if (!user) {
         //  user does not exist
         console.log('authentication, user does not exist', userId);
-  
+
         //  save user
         await db.user.set({
           userId,
@@ -66,7 +67,7 @@ const createProductionSession = async authCode => {
           accessToken
         });
       }
-  
+
       //  generate token to identify user
       const token = jwt.sign(
         {
@@ -76,9 +77,9 @@ const createProductionSession = async authCode => {
         process.env.TOKEN_SECRET,
         { expiresIn: '30d' }
       );
-  
+
       console.log('generated new user token', token);
-  
+
       //  save token
       await db.user.set({
         userId,
@@ -89,7 +90,6 @@ const createProductionSession = async authCode => {
   } else {
     console.log('Amazon did not supply tokens in exchange for auth code');
   }
-
 };
 
 const createDevelopmentSession = async () => {
