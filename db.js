@@ -5,7 +5,7 @@ import pg from 'pg';
 pg.types.setTypeParser(1700, 'text', parseFloat);
 
 const productionConnection = {
-  host: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
+  host: process.env.DB_IP_PRODUCTION,
   user: process.env.DB_USER_PRODUCTION,
   password: process.env.DB_PASS_PRODUCTION,
   database: 'bidmatik'

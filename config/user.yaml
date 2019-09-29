@@ -14,12 +14,13 @@ spec:
     app: bidmatik
   type: ClusterIP
 ---
-apiVersion: apps/v1 
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: user-deployment
+  labels:
+    app: bidmatik
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: bidmatik
@@ -29,30 +30,55 @@ spec:
         app: bidmatik
     spec:
       containers:
-      - name: user
-        image: <IMAGE>
-        ports:
-        - containerPort: 4000
+        - name: user
+          image: <IMAGE>
+          ports:
+            - containerPort: 4000
+          # The following environment variables will contain the database host,
+          # user and password to connect to the PostgreSQL instance.
+          env:
+            - name: DB_IP_PRODUCTION
+              value: 127.0.0.1:5432
+            # [START cloudsql_secrets]
+            - name: DB_USER_PRODUCTION
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-db-credentials
+                  key: username
+            - name: DB_PASS_PRODUCTION
+              valueFrom:
+                secretKeyRef:
+                  name: cloudsql-db-credentials
+                  key: password
+            # [END cloudsql_secrets]
+        # Change <INSTANCE_CONNECTION_NAME> here to include your GCP
+        # project, the region of your Cloud SQL instance and the name
+        # of your Cloud SQL instance. The format is
+        # $PROJECT:$REGION:$INSTANCE
+        # [START proxy_container]
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.14
+          command: ["/cloud_sql_proxy",
+                    "-instances=bidmatik:us-east1:bidmatik=tcp:5432",
+                    # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+                    # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+                    # "-ip_address_types=PRIVATE",
+                    "-credential_file=/secrets/cloudsql/credentials.json"]
+          # [START cloudsql_security_context]
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          # [END cloudsql_security_context]
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+        # [END proxy_container]
+      # [START volumes]
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql-instance-credentials
+      # [END volumes]
       imagePullSecrets:
         - name: regcred
-      - name: cloudsql-proxy
-        image: gcr.io/cloudsql-docker/gce-proxy:1.14
-        command: [
-            "/cloud_sql_proxy",
-            "-instances=bidmatik:us-east1:bidmatik=tcp:5432",
-            # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
-            # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
-            # "-ip_address_types=PRIVATE",
-            "-credential_file=/secrets/cloudsql/credentials.json",
-          ]
-        securityContext:
-          runAsUser: 2 # non-root user
-          allowPrivilegeEscalation: false
-        volumeMounts:
-          - name: cloudsql-instance-credentials
-            mountPath: /secrets/cloudsql
-            readOnly: true
-      volumes:
-      - name: cloudsql-instance-credentials
-        secret:
-          secretName: cloudsql-instance-credentials
