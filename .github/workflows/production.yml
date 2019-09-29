@@ -15,6 +15,9 @@ jobs:
     - name: Checkout master
       uses: actions/checkout@master
 
+    - name: Print the workspace
+      run: echo $GITHUB_WORKSPACE
+
     - name: Update SHA
       run: echo $GITHUB_SHA > $GITHUB_WORKSPACE/config/_commit_sha
 
