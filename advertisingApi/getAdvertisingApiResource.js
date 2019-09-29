@@ -19,6 +19,9 @@ export default async function getAdvertisingApiResource(
   if (stateFilter) request.url += `?stateFilter=${stateFilter}`;
 
   return axios(request)
-    .then(res => res.data)
+    .then(res => {
+      console.log(res.data);
+      return res.data;
+    })
     .catch(err => console.log('get api resource error', err));
 }

@@ -74,6 +74,8 @@ const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
     accessToken
   });
 
+  console.log('keywords', keywords);
+
   return R.map(
     renameKeys({
       keywordId: 'id',
