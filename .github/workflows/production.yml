@@ -24,7 +24,7 @@ jobs:
     - name: Build container image
       uses: actions/docker/cli@master
       with:
-        args: build -t larsnolden/user:$(echo $GITHUB_SHA | head -c7) .
+        args: build -t bidmatik/user:$(echo $GITHUB_SHA | head -c7) .
 
     - name: Docker Login
       uses: actions/docker/login@master
