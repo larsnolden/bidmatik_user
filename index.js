@@ -13,12 +13,14 @@ const isProduction = process.env.NODE_ENV === 'production';
 const server = new GraphQLServer({
   typeDefs,
   resolvers,
-  context: async ({ request }) => {
+  context: async ({ request, response }) => {
     const user = isProduction
       ? await authenticateSession(request)
       : await db.user.find({ userId: process.env.DEVELOPMENT_USER_ID }).then(res => res[0]);
     user.filterDateFrom = moment(user.filterDateFrom);
     user.filterDateTo = moment(user.filterDateTo);
+
+    response.set('Access-Control-Allow-Origin', 'app.bidmatik.com');
 
     return {
       user,
