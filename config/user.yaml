@@ -35,3 +35,20 @@ spec:
         - containerPort: 4000
       imagePullSecrets:
         - name: regcred
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.14
+        command: [
+            "/cloud_sql_proxy",
+            "-instances=bidmatik:us-east1:bidmatik=tcp:5432",
+            # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+            # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+            # "-ip_address_types=PRIVATE",
+            "-credential_file=/secrets/cloudsql/credentials.json",
+          ]
+        securityContext:
+          runAsUser: 2 # non-root user
+          allowPrivilegeEscalation: false
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
