@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: user
-        image: bidmatik/user:latest
+        image: <IMAGE>
         ports:
         - containerPort: 4000
       imagePullSecrets:
