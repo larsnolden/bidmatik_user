@@ -20,7 +20,7 @@ const server = new GraphQLServer({
     user.filterDateFrom = moment(user.filterDateFrom);
     user.filterDateTo = moment(user.filterDateTo);
 
-    response.set('Access-Control-Allow-Origin', 'app.bidmatik.com');
+    if (isProduction) response.set('Access-Control-Allow-Origin', 'app.bidmatik.com');
 
     return {
       user,

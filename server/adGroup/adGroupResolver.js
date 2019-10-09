@@ -128,6 +128,27 @@ const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
     )
     .then(res => res.rows);
 
+const setAdGroupSettings = async ({
+  input: { id, dailyBudget, updateBids, targetAcos, addKeywords, addNegativeKeywords },
+  user,
+  db
+}) => {
+  await db.adGroup.set({
+    adGroupId: id,
+    userId: user.userId,
+    profileId: user.activeSellerProfileId,
+    dailyBudget,
+    updateBids,
+    targetAcos,
+    addKeywords,
+    addNegativeKeywords
+  });
+  const adGroup = db.adGroup.find({ adGroupId: id });
+  return adGroup;
+};
+
+const getAdGroupSettings = ({ adGroupId, db }) => db.adGroup.find({ adGroupId });
+
 export default {
   Query: {
     AdGroup: (parent, { id: adGroupId }, { handler }) =>
@@ -136,7 +157,14 @@ export default {
         adGroupId
       })
   },
+  Mutation: {
+    setAdGroupSettings: (_, input, { handler, user }) => {
+      return setAdGroupSettings({ db: handler.db, user, input });
+    }
+  },
   AdGroup: {
+    adGroupSettings: ({ id }, _, { handler }) =>
+      getAdGroupSettings({ adGroupId: id, db: handler.db }),
     AdGroupPerformanceDelta: async ({ id: adGroupId }, { from, to }, { handler, user }) => {
       const dates = createComparisonTimePeriods(
         from || user.filterDateFrom,

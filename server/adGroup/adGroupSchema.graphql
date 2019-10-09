@@ -2,13 +2,35 @@ extend type Query {
   AdGroup(id: ID!): AdGroup
 }
 
+extend type Mutation {
+  setAdGroupSettings(input: AdGroupSettingsInput!): adGroupSettings
+}
+
 enum KeywordSortBy {
   spend
+}
+
+input AdGroupSettingsInput {
+  id: ID!
+  dailyBudget: Int
+  updateBids: Boolean!
+  targetAcos: Float
+  addKeywords: Boolean!
+  addNegativeKeywords: Boolean!
+}
+
+type adGroupSettings {
+  dailyBudget: Int
+  updateBids: Boolean!
+  targetAcos: Float
+  addKeywords: Boolean!
+  addNegativeKeywords: Boolean!
 }
 
 type AdGroup {
   id: ID!
   name: String!
+  adGroupSettings: adGroupSettings!
   Keywords(from: Date, to: Date, sortBy: KeywordSortBy): [Keyword]!
   AdGroupPerformanceReduced(from: Date, to: Date): Performance
   AdGroupPerformanceDelta(from: Date, to: Date): PerformancePercent
