@@ -1,5 +1,8 @@
-import { keysToSnakeCase, listToCamelCase } from 'bidmatikDep/helper';
 import moment from 'moment';
+import * as R from 'ramda';
+import { updateAccessToken } from 'bidmatikDep';
+import renameKeys from '../../utils/renameKeys';
+import advertisingApi from '../../advertisingApi/api';
 
 const getSellerProfiles = async (db, userId) => {
   const sellerProfiles = await db.sellerProfile.find({ userId });
@@ -21,21 +24,20 @@ const getSellerProfile = async (db, profileId) => {
   };
 };
 
-const getCampaigns = ({ knex, profileId, from, to }) =>
-  knex
-    .raw(
-      `
-  select
-    max(campaign_name) as name,
-    max(campaign_id) as id,
-    max(campaign_budget) as budget
-  from "campaign_report" where "profile_id" = '${profileId}' and date::INT between ${moment(
-        from
-      ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-  group by campaign_id
-`
-    )
-    .then(res => res.rows);
+const getCampaigns = async ({ db, user, profileId }) => {
+  await updateAccessToken(user.userId, db);
+  const { accessToken } = user;
+  const campaigns = await advertisingApi.getCampaignsByProfile({
+    profileId,
+    accessToken
+  });
+  return R.map(
+    renameKeys({
+      campaignId: 'id',
+      dailyBudget: 'budget'
+    })
+  )(campaigns);
+};
 
 const getProfilePerformanceReduced = ({ knex, profileId, from, to }) =>
   knex.schema
@@ -144,12 +146,11 @@ export default {
       await SetActiveSellerProfile(handler.db, profileId, user.userId)
   },
   SellerProfile: {
-    Campaigns: async ({ id: profileId }, { from, to }, { handler, user }) =>
-      await getCampaigns({
-        knex: handler.knex,
-        profileId,
-        from: from || user.filterDateFrom,
-        to: to || user.filterDateTo
+    Campaigns: ({ id: profileId }, _, { handler, user }) =>
+      getCampaigns({
+        db: handler.db,
+        user,
+        profileId
       }),
     ProfilePerformanceReduced: async ({ id: profileId }, { from, to }, { handler, user }) =>
       await getProfilePerformanceReduced({

@@ -1,5 +1,8 @@
 import moment from 'moment';
 import * as R from 'ramda';
+import { updateAccessToken } from 'bidmatikDep';
+import renameKeys from '../../utils/renameKeys';
+import advertisingApi from '../../advertisingApi/api';
 
 const CampaignPerformanceReduced = ({ knex, campaignId, from, to }) =>
   knex
@@ -96,20 +99,20 @@ const getCampagin = (knex, campaignId) =>
     )
     .then(res => res.rows[0]);
 
-const getAdGroups = ({ knex, campaignId, from, to }) =>
-  knex
-    .raw(
-      `
-  select
-    max(ad_group_name) as name,
-    max(ad_group_id) as id
-  from ad_group_report where "campaign_id" = '${campaignId}' and date::INT between ${moment(
-        from
-      ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-  group by ad_group_id
-`
-    )
-    .then(res => res.rows);
+const getAdGroups = async ({ db, user, campaignId }) => {
+  await updateAccessToken(user.userId, db);
+  const { accessToken, activeSellerProfileId: profileId } = user;
+  const adGroups = await advertisingApi.getAdgroupsByCampaign({
+    campaignId,
+    profileId,
+    accessToken
+  });
+  return R.map(
+    renameKeys({
+      adGroupId: 'id'
+    })
+  )(adGroups);
+};
 
 export default {
   Query: {
@@ -130,12 +133,11 @@ export default {
         from: from || user.filterDateFrom,
         to: to || user.filterDateTo
       }),
-    AdGroups: ({ id: campaignId }, { from, to }, { handler, user }) =>
+    AdGroups: ({ id: campaignId }, _, { handler, user }) =>
       getAdGroups({
-        knex: handler.knex,
+        db: handler.db,
         campaignId,
-        from: from || user.filterDateFrom,
-        to: to || user.filterDateTo
+        user
       })
   }
 };

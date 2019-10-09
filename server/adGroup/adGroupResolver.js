@@ -1,26 +1,38 @@
 import moment from 'moment';
+import * as R from 'ramda';
+import { updateAccessToken } from 'bidmatikDep';
 import createComparisonTimePeriods from '../../utils/createComparisonTimePeriods';
 import createPerformanceDelta from '../../utils/createPerformanceDelta';
-import { updateAccessToken } from 'bidmatikDep';
 import renameKeys from '../../utils/renameKeys';
-import * as R from 'ramda';
 
 import advertisingApi from '../../advertisingApi/api';
 
-const getAdGroup = ({ knex, adGroupId }) =>
-  knex
-    .raw(
-      `
-  Select
-    ad_group_id as id,
-    ad_group_name as name
-  from ad_group_report
-    where ad_group_id = '${adGroupId}'
-  order by date desc
-  limit 1
-`
-    )
-    .then(res => res.rows[0]);
+const getAdGroup = async ({ user, adGroupId, db }) => {
+  await updateAccessToken(user.userId, db);
+  const { accessToken, activeSellerProfileId: profileId } = user;
+  const adGroup = await advertisingApi.getAdgroupById({
+    adGroupId,
+    profileId,
+    accessToken
+  });
+  console.log('got ad group', adGroup);
+  return renameKeys({
+    adGroupId: 'id'
+  })(adGroup);
+};
+//   knex
+//     .raw(
+//       `
+//   Select
+//     ad_group_id as id,
+//     ad_group_name as name
+//   from ad_group_report
+//     where ad_group_id = '${adGroupId}'
+//   order by date desc
+//   limit 1
+// `
+//     )
+//     .then(res => res.rows[0]);
 
 const adGroupPerformanceReduced = ({ knex, adGroupId, from, to }) =>
   knex
@@ -65,7 +77,6 @@ const getAdGroupPerformanceDelta = async ({ knex, adGroupId, dates }) => {
 };
 
 const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
-  console.log('user', user);
   await updateAccessToken(user.userId, db);
   const { accessToken, activeSellerProfileId: profileId } = user;
   const keywords = await advertisingApi.getKeywordsByAdGroup({
@@ -74,35 +85,12 @@ const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
     accessToken
   });
 
-  console.log('keywords', keywords);
-
   return R.map(
     renameKeys({
       keywordId: 'id',
       keywordText: 'term'
     })
   )(keywords);
-
-  console.log('keywords', keywords);
-
-  knex
-    .raw(
-      `
-  select
-    distinct on (id)
-    keyword_id as id,
-    keyword_text as term,
-    match_type as "matchType",
-    bid
-  from active_keyword
-    where ad_group_id = '${adGroupId}' 
-    and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-    and bid is not null
-  order by id, date desc
-  limit 25
-`
-    )
-    .then(res => res.rows);
 };
 
 const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
@@ -128,11 +116,9 @@ const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
     )
     .then(res => res.rows);
 
-const setAdGroupSettings = async ({
-  input: { id, dailyBudget, updateBids, targetAcos, addKeywords, addNegativeKeywords },
-  user,
-  db
-}) => {
+const setAdGroupSettings = async ({ input, user, db }) => {
+  const { id, dailyBudget, updateBids, targetAcos, addKeywords, addNegativeKeywords } = input;
+  //  TODO: call amazon api for updating daily budget, write resolver for daily budget below
   await db.adGroup.set({
     adGroupId: id,
     userId: user.userId,
@@ -143,28 +129,44 @@ const setAdGroupSettings = async ({
     addKeywords,
     addNegativeKeywords
   });
-  const adGroup = db.adGroup.find({ adGroupId: id });
+  const adGroup = await db.adGroup.find({ adGroupId: id }).then(res => res[0]);
   return adGroup;
 };
 
-const getAdGroupSettings = ({ adGroupId, db }) => db.adGroup.find({ adGroupId });
+const getAdGroupSettings = async ({ adGroupId, user, db }) => {
+  const settings = await db.adGroup.find({ adGroupId }).then(res => res[0]);
+  console.log('found these settings:', settings);
+  if (!R.empty(settings)) return settings;
+  console.log('creating new settings');
+
+  // no settings exist, create in db
+  const adGroupSettingsDefault = {
+    updateBids: false,
+    targetAcos: 0.2,
+    addKeywords: false,
+    addNegativeKeywords: false
+  };
+  await setAdGroupSettings({ input: adGroupSettingsDefault, user, db });
+  return adGroupSettingsDefault;
+};
 
 export default {
   Query: {
-    AdGroup: (parent, { id: adGroupId }, { handler }) =>
+    AdGroup: (parent, { id: adGroupId }, { user, handler }) =>
       getAdGroup({
-        knex: handler.knex,
+        db: handler.db,
+        user,
         adGroupId
       })
   },
   Mutation: {
-    setAdGroupSettings: (_, input, { handler, user }) => {
+    setAdGroupSettings: (_, { input }, { handler, user }) => {
       return setAdGroupSettings({ db: handler.db, user, input });
     }
   },
   AdGroup: {
-    adGroupSettings: ({ id }, _, { handler }) =>
-      getAdGroupSettings({ adGroupId: id, db: handler.db }),
+    adGroupSettings: ({ id: adGroupId }, _, { handler, user }) =>
+      getAdGroupSettings({ adGroupId, user, db: handler.db }),
     AdGroupPerformanceDelta: async ({ id: adGroupId }, { from, to }, { handler, user }) => {
       const dates = createComparisonTimePeriods(
         from || user.filterDateFrom,
@@ -199,5 +201,9 @@ export default {
         from: from || user.filterDateFrom,
         to: to || user.filterDateTo
       })
+  },
+  adGroupSettings: {
+    // todo: replace with api call, and remove col from db => much easier to have one source of thruth
+    dailyBudget: () => 22
   }
 };
