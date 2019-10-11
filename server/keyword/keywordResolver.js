@@ -137,18 +137,42 @@ export default {
         keywordId
       }),
     automated: ({ id: keywordId }, args, { handler }) =>
-      getIsKeywordAutomated({
-        knex: handler.knex,
-        keywordId
-      }),
+      // TODO: remove placeholder, add paging with sort
+      true,
+    // getIsKeywordAutomated({
+    //   knex: handler.knex,
+    //   keywordId
+    // }),
     KeywordPerformanceReduced: ({ id: keywordId }, { from, to }, { handler, user }) =>
-      getKeywordPerformanceReduced({
-        knex: handler.knex,
-        keywordId,
-        from: from || user.filterDateFrom,
-        to: to || user.filterDateTo
+      // TODO: remove placeholder, add paging with sort
+      ({
+        absoluteAcos: null,
+        absoluteRevenue: null,
+        acos: null,
+        clicks: 0,
+        date: '20190606',
+        impressions: 0,
+        revenue: 0,
+        spend: 0
       }),
+    // getKeywordPerformanceReduced({
+    //   knex: handler.knex,
+    //   keywordId,
+    //   from: from || user.filterDateFrom,
+    //   to: to || user.filterDateTo
+    // })),
     KeywordPerformanceDelta: ({ id: keywordId }, { from, to }, { handler, user }) => {
+      // TODO: remove placeholder, add paging with sort
+      return {
+        absoluteAcos: null,
+        absoluteRevenue: null,
+        acos: null,
+        clicks: 0,
+        date: '20190606',
+        impressions: 0,
+        revenue: 0,
+        spend: 0
+      };
       const dates = createComparisonTimePeriods(
         from || user.filterDateFrom,
         to || user.filterDateTo

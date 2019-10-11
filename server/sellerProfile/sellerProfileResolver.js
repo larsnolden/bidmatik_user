@@ -31,12 +31,14 @@ const getCampaigns = async ({ db, user, profileId }) => {
     profileId,
     accessToken
   });
-  return R.map(
-    renameKeys({
-      campaignId: 'id',
-      dailyBudget: 'budget'
-    })
-  )(campaigns);
+  return campaigns
+    ? R.map(
+        renameKeys({
+          campaignId: 'id',
+          dailyBudget: 'budget'
+        })
+      )(campaigns)
+    : [];
 };
 
 const getProfilePerformanceReduced = ({ knex, profileId, from, to }) =>

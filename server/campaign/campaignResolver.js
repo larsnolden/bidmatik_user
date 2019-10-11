@@ -107,11 +107,13 @@ const getAdGroups = async ({ db, user, campaignId }) => {
     profileId,
     accessToken
   });
-  return R.map(
-    renameKeys({
-      adGroupId: 'id'
-    })
-  )(adGroups);
+  return adGroups
+    ? R.map(
+        renameKeys({
+          adGroupId: 'id'
+        })
+      )(adGroups)
+    : [];
 };
 
 export default {

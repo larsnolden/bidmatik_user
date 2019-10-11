@@ -20,7 +20,7 @@ export default async function getAdvertisingApiResource(
 
   return axios(request)
     .then(res => {
-      console.log(res.data);
+      // console.log(res.data);
       return res.data;
     })
     .catch(err => console.log('get api resource error', err));

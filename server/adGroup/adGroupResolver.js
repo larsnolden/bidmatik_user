@@ -20,19 +20,6 @@ const getAdGroup = async ({ user, adGroupId, db }) => {
     adGroupId: 'id'
   })(adGroup);
 };
-//   knex
-//     .raw(
-//       `
-//   Select
-//     ad_group_id as id,
-//     ad_group_name as name
-//   from ad_group_report
-//     where ad_group_id = '${adGroupId}'
-//   order by date desc
-//   limit 1
-// `
-//     )
-//     .then(res => res.rows[0]);
 
 const adGroupPerformanceReduced = ({ knex, adGroupId, from, to }) =>
   knex
@@ -85,6 +72,8 @@ const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
     accessToken
   });
 
+  // return [];
+
   return R.map(
     renameKeys({
       keywordId: 'id',
@@ -119,6 +108,7 @@ const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
 const setAdGroupSettings = async ({ input, user, db }) => {
   const { id, dailyBudget, updateBids, targetAcos, addKeywords, addNegativeKeywords } = input;
   //  TODO: call amazon api for updating daily budget, write resolver for daily budget below
+  console.log('input', input);
   await db.adGroup.set({
     adGroupId: id,
     userId: user.userId,
@@ -129,25 +119,28 @@ const setAdGroupSettings = async ({ input, user, db }) => {
     addKeywords,
     addNegativeKeywords
   });
-  const adGroup = await db.adGroup.find({ adGroupId: id }).then(res => res[0]);
+  const adGroup = await db.adGroup.find({ adGroupId: id });
   return adGroup;
 };
 
 const getAdGroupSettings = async ({ adGroupId, user, db }) => {
   const settings = await db.adGroup.find({ adGroupId }).then(res => res[0]);
+  console.log('settings', settings);
+  if (!settings || R.isEmpty(Object.keys(settings))) {
+    // no settings exist, create in db
+    console.log('creating new settings');
+    const adGroupSettingsDefault = {
+      id: adGroupId,
+      updateBids: false,
+      targetAcos: 0.2,
+      addKeywords: false,
+      addNegativeKeywords: false
+    };
+    await setAdGroupSettings({ input: adGroupSettingsDefault, user, db });
+    return adGroupSettingsDefault;
+  }
   console.log('found these settings:', settings);
-  if (!R.empty(settings)) return settings;
-  console.log('creating new settings');
-
-  // no settings exist, create in db
-  const adGroupSettingsDefault = {
-    updateBids: false,
-    targetAcos: 0.2,
-    addKeywords: false,
-    addNegativeKeywords: false
-  };
-  await setAdGroupSettings({ input: adGroupSettingsDefault, user, db });
-  return adGroupSettingsDefault;
+  return settings;
 };
 
 export default {
