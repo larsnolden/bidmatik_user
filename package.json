@@ -15,6 +15,7 @@
     "bidmatikDep": "git+https://3ac9666a8113df6bd51c4a47cc9a489d7eae01e4:x-oauth-basic@github.com/larsnolden/bidmatik_dep.git",
     "casual": "^1.6.2",
     "clarify": "^2.1.0",
+    "dataloader": "^1.4.0",
     "dotenv": "^8.1.0",
     "esm": "^3.2.25",
     "graphql-tag": "^2.10.1",

@@ -76,30 +76,30 @@ const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
 
   // return [];
 
-  const keywordsWithPerformance = keywords.map(async keyword => {
-    const { keywordId } = keyword;
-    const KeywordPerformanceReduced = await getKeywordPerformanceReduced({
-      knex,
-      keywordId,
-      from,
-      to
-    });
-    return {
-      KeywordPerformanceReduced,
-      ...keyword,
-      id: keywordId,
-      term: keyword.keywordText
-    };
-  });
+  // const keywordsWithPerformance = keywords.map(async keyword => {
+  //   const { keywordId } = keyword;
+  //   const KeywordPerformanceReduced = await getKeywordPerformanceReduced({
+  //     knex,
+  //     keywordId,
+  //     from,
+  //     to
+  //   });
+  //   return {
+  //     KeywordPerformanceReduced,
+  //     ...keyword,
+  //     id: keywordId,
+  //     term: keyword.keywordText
+  //   };
+  // });
 
-  return Promise.all(keywordsWithPerformance);
-  console.log(keywordsWithPerformance[0]);
+  // return Promise.all(keywordsWithPerformance);
+  // console.log(keywordsWithPerformance[0]);
   return R.map(
     renameKeys({
       keywordId: 'id',
       keywordText: 'term'
     })
-  )(keywordsWithPerformance);
+  )(keywords);
 };
 
 const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>

@@ -1,4 +1,6 @@
 import moment from 'moment';
+import DataLoader from 'dataloader';
+import * as R from 'ramda';
 
 import createComparisonTimePeriods from '../../utils/createComparisonTimePeriods';
 import createPerformanceDelta from '../../utils/createPerformanceDelta';
@@ -60,11 +62,43 @@ const getKeywordMatchType = ({ knex, keywordId }) =>
     )
     .then(res => res.rows[0].matchType);
 
-export const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
+// export const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
+//   knex
+//     .raw(
+//       `
+//           select
+//           sum(sub.clicks) as clicks,
+//           sum(sub.impressions) as impressions,
+//           avg(sub.ctr) as ctr,
+//           sum(sub.spend) as spend,
+//           sum(sub.orders) as orders,
+//           sum(sub.revenue) as revenue,
+//           sum(sub.spend)/NULLIF(sum(revenue),0) as acos
+//           from
+//           (
+//             select
+//               sum(clicks) as clicks,
+//               sum(impressions) as impressions,
+//               avg(clicks)/NULLIF(avg(impressions),0) as ctr,
+//               sum(cost) as spend,
+//               sum(attributed_units_ordered_1_d) as orders,
+//               sum(attributed_sales_1_d_same_sku) as revenue,
+//               date
+//             from "keyword_report" where "keyword_id" = '${keywordId}' and date::INT between ${moment(
+//         from
+//       ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
+//             group by date
+//           ) as sub
+//       `
+//     )
+//     .then(res => res.rows[0]);
+
+const getKeywordPerformnaceReducedBatched = ({ knex, keywordIds, from, to }) =>
   knex
     .raw(
       `
-          select
+      select
+        max(sub.keyword_id) as keyword_id,
           sum(sub.clicks) as clicks,
           sum(sub.impressions) as impressions,
           avg(sub.ctr) as ctr,
@@ -72,9 +106,10 @@ export const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
           sum(sub.orders) as orders,
           sum(sub.revenue) as revenue,
           sum(sub.spend)/NULLIF(sum(revenue),0) as acos
-          from
+          from 
           (
             select
+              max(keyword_id) as keyword_id,
               sum(clicks) as clicks,
               sum(impressions) as impressions,
               avg(clicks)/NULLIF(avg(impressions),0) as ctr,
@@ -82,14 +117,36 @@ export const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
               sum(attributed_units_ordered_1_d) as orders,
               sum(attributed_sales_1_d_same_sku) as revenue,
               date
-            from "keyword_report" where "keyword_id" = '${keywordId}' and date::INT between ${moment(
-        from
-      ).format('YYYYMMDD')} and ${moment(to).format('YYYYMMDD')}
-            group by date
-          ) as sub
-      `
+            from "keyword_report" where keyword_id in (${keywordIds.map(
+              id => `'${id}'`
+            )}) and date::INT between ${moment(from).format('YYYYMMDD')} and ${moment(to).format(
+        'YYYYMMDD'
+      )}
+            group by date, keyword_id
+          ) as sub group by keyword_id
+    `
     )
-    .then(res => res.rows[0]);
+    .then(res => res.rows);
+
+//  from and to date are for every request the same, but we want to batch the keywordIds
+const reducePerformanceReducedRequests = R.reduce(
+  (batchedRequests, request) => ({
+    ...request,
+    keywordIds: [...(batchedRequests.keywordIds || []), request.keywordId]
+  }),
+  {}
+);
+
+const keywordPerformanceReducedDataLoader = new DataLoader(
+  R.pipe(
+    reducePerformanceReducedRequests,
+    getKeywordPerformnaceReducedBatched
+  )
+);
+
+export const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) => {
+  return keywordPerformanceReducedDataLoader.load({ knex, keywordId, from, to });
+};
 
 const getKeywordPerformanceDelta = ({ knex, keywordId, dates }) => {
   const getPerformance = ({ from, to }) =>
