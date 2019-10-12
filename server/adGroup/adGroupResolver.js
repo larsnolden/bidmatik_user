@@ -7,6 +7,8 @@ import renameKeys from '../../utils/renameKeys';
 
 import advertisingApi from '../../advertisingApi/api';
 
+import { getKeywordPerformanceReduced } from '../keyword/keywordResolver';
+
 const getAdGroup = async ({ user, adGroupId, db }) => {
   await updateAccessToken(user.userId, db);
   const { accessToken, activeSellerProfileId: profileId } = user;
@@ -74,12 +76,30 @@ const getKeywords = async ({ knex, db, adGroupId, user, from, to }) => {
 
   // return [];
 
+  const keywordsWithPerformance = keywords.map(async keyword => {
+    const { keywordId } = keyword;
+    const KeywordPerformanceReduced = await getKeywordPerformanceReduced({
+      knex,
+      keywordId,
+      from,
+      to
+    });
+    return {
+      KeywordPerformanceReduced,
+      ...keyword,
+      id: keywordId,
+      term: keyword.keywordText
+    };
+  });
+
+  return Promise.all(keywordsWithPerformance);
+  console.log(keywordsWithPerformance[0]);
   return R.map(
     renameKeys({
       keywordId: 'id',
       keywordText: 'term'
     })
-  )(keywords);
+  )(keywordsWithPerformance);
 };
 
 const getAdGroupPerformance = ({ knex, adGroupId, from, to }) =>
@@ -185,14 +205,14 @@ export default {
         from: from || user.filterDateFrom,
         to: to || user.filterDateTo
       }),
-    Keywords: ({ id: adGroupId }, { from, to }, { handler, user }) =>
+    Keywords: ({ id: adGroupId }, { from, to }, { handler, user }, query) =>
       getKeywords({
         knex: handler.knex,
         db: handler.db,
         user,
         adGroupId,
-        from: from || user.filterDateFrom,
-        to: to || user.filterDateTo
+        from: user.filterDateFrom || query.operation.variableValues.from,
+        to: user.filterDateTo || query.operation.variableValues.to
       })
   },
   adGroupSettings: {

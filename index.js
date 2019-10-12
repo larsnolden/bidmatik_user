@@ -8,7 +8,7 @@ import traceKnex from './utils/traceKnex';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// knex = traceKnex(knex);
+knex = traceKnex(knex);
 
 const server = new GraphQLServer({
   typeDefs,

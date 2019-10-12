@@ -60,7 +60,7 @@ const getKeywordMatchType = ({ knex, keywordId }) =>
     )
     .then(res => res.rows[0].matchType);
 
-const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
+export const getKeywordPerformanceReduced = ({ knex, keywordId, from, to }) =>
   knex
     .raw(
       `
@@ -138,29 +138,29 @@ export default {
       }),
     automated: ({ id: keywordId }, args, { handler }) =>
       // TODO: remove placeholder, add paging with sort
-      true,
-    // getIsKeywordAutomated({
-    //   knex: handler.knex,
-    //   keywordId
-    // }),
+      // true,
+      getIsKeywordAutomated({
+        knex: handler.knex,
+        keywordId
+      }),
     KeywordPerformanceReduced: ({ id: keywordId }, { from, to }, { handler, user }) =>
       // TODO: remove placeholder, add paging with sort
-      ({
-        absoluteAcos: null,
-        absoluteRevenue: null,
-        acos: null,
-        clicks: 0,
-        date: '20190606',
-        impressions: 0,
-        revenue: 0,
-        spend: 0
+      // ({
+      //   absoluteAcos: null,
+      //   absoluteRevenue: null,
+      //   acos: null,
+      //   clicks: 0,
+      //   date: '20190606',
+      //   impressions: 0,
+      //   revenue: 0,
+      //   spend: 0
+      // }),
+      getKeywordPerformanceReduced({
+        knex: handler.knex,
+        keywordId,
+        from: from || user.filterDateFrom,
+        to: to || user.filterDateTo
       }),
-    // getKeywordPerformanceReduced({
-    //   knex: handler.knex,
-    //   keywordId,
-    //   from: from || user.filterDateFrom,
-    //   to: to || user.filterDateTo
-    // })),
     KeywordPerformanceDelta: ({ id: keywordId }, { from, to }, { handler, user }) => {
       // TODO: remove placeholder, add paging with sort
       return {
