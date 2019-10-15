@@ -30,8 +30,6 @@ spec:
         app: bidmatik
     spec:
       containers:
-        - name: postgres
-          image: tmaier/postgresql-client
         - name: user
           image: <IMAGE>
           ports:
