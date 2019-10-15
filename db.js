@@ -4,6 +4,9 @@ import pg from 'pg';
 
 pg.types.setTypeParser(1700, 'text', parseFloat);
 
+const isProduction = process.env.NODE_ENV === 'production';
+console.log('IS PRODUCION: ', isProduction);
+
 const productionConnection = {
   host: process.env.DB_IP_PRODUCTION,
   user: process.env.DB_USER_PRODUCTION,
@@ -25,12 +28,14 @@ const developmentCloudConnection = {
   database: 'bidmatik'
 };
 
+const connection = isProduction ? productionConnection : developmentCloudConnection;
+console.log('using connection', connection);
+
 export const knex = knexBuilder({
   // debug: true,
   client: 'pg',
   version: '9.6',
-  connection:
-    process.env.NODE_ENV === 'production' ? productionConnection : developmentCloudConnection
+  connection
 });
 
 export default dbBuilder(knex);
