@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: launcher.gcr.io/google/postgresql9
+          image: tmaier/postgresql-client
         - name: user
           image: <IMAGE>
           ports:
