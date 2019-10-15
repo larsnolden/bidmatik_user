@@ -7,9 +7,9 @@ metadata:
     app: bidmatik
 spec:
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 4000
+    - protocol: TCP
+      port: 80
+      targetPort: 4000
   selector:
     app: bidmatik
   type: ClusterIP
@@ -30,6 +30,8 @@ spec:
         app: bidmatik
     spec:
       containers:
+        - name: postgres
+          image: launcher.gcr.io/google/postgresql9
         - name: user
           image: <IMAGE>
           ports:
@@ -66,9 +68,9 @@ spec:
                   name: user-app
                   key: token_secret
             - name: ADVERTISING_API_ENPOINT
-              value: "https://advertising-api.amazon.com"
+              value: 'https://advertising-api.amazon.com'
             - name: NODE_ENV
-              value: "production"
+              value: 'production'
             # [END cloudsql_secrets]
         # Change <INSTANCE_CONNECTION_NAME> here to include your GCP
         # project, the region of your Cloud SQL instance and the name
@@ -77,15 +79,17 @@ spec:
         # [START proxy_container]
         - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.14
-          command: ["/cloud_sql_proxy",
-                    "-instances=bidmatik:us-east1:bidmatik=tcp:5432",
-                    # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
-                    # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
-                    # "-ip_address_types=PRIVATE",
-                    "-credential_file=/secrets/cloudsql/credentials.json"]
+          command: [
+              '/cloud_sql_proxy',
+              '-instances=bidmatik:us-east1:bidmatik=tcp:5432',
+              # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+              # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+              # "-ip_address_types=PRIVATE",
+              '-credential_file=/secrets/cloudsql/credentials.json',
+            ]
           # [START cloudsql_security_context]
           securityContext:
-            runAsUser: 2  # non-root user
+            runAsUser: 2 # non-root user
             allowPrivilegeEscalation: false
           # [END cloudsql_security_context]
           volumeMounts:
