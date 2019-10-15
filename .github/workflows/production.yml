@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Update deployment file
-        run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|bidmatik/user:'${TAG}'|' $GITHUB_WORKSPACE/config/user.yaml
+        run: TAG=$(echo $GITHUB_SHA | head -c7) && sed -i 's|<IMAGE>|bidmatik/user:'latest'|' $GITHUB_WORKSPACE/config/user.yaml
 
       - name: Save DigitalOcean kubeconfig
         uses: digitalocean/action-doctl@master
