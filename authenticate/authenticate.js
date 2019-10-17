@@ -124,6 +124,7 @@ export const authenticateSession = async request => {
   const token = request.headers.authentication || '';
   if (isProduction) console.log('authenticateSession with token');
   const user = await db.user.find({ authenticationToken: token }).then(res => res[0]);
-  if (isProduction) console.log(`found valid session for token with user ${user.email}`);
+  if (user && user.email) console.log(`found valid session for token with user ${user.email}`);
+  if (!user) console.log(`could not find a valid session`);
   return user;
 };
