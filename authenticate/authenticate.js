@@ -41,7 +41,9 @@ const createProductionSession = async authCode => {
       headers: {
         'x-amz-access-token': accessToken
       }
-    }).then(res => res.data);
+    })
+      .then(res => res.data)
+      .catch(e => console.log('Get Amazonon User Profile Error', e));
 
     if (amazonUserId) {
       //  check if the user already Exists or create a new one
