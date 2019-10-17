@@ -4,11 +4,16 @@ export default async function getAdvertisingApiResource(
   resource,
   accessToken,
   profileId,
+  region = 'US',
   stateFilter
 ) {
   const request = {
     method: 'GET',
-    url: `${process.env.ADVERTISING_API_ENPOINT}/v2/${resource}`,
+    baseUrl:
+      region === 'US'
+        ? process.env.US_ADVERTISING_API_ENPOINT
+        : process.env.EU_ADVERTISING_API_ENPOINT,
+    url: `/v2/${resource}`,
     headers: {
       'Amazon-Advertising-API-ClientId': process.env.AMAZON_CLIENT_ID,
       Authorization: `Bearer ${accessToken}`

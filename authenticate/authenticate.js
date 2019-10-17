@@ -1,7 +1,9 @@
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
+import moment from 'moment';
 import qs from 'query-string';
 import db from '../db';
+import getAdvertisingApiResource from '../advertisingApi/getAdvertisingApiResource';
 
 const getApiUser = async accessToken =>
   axios({
@@ -12,6 +14,33 @@ const getApiUser = async accessToken =>
       'x-amz-access-token': accessToken
     }
   }).then(res => res.data);
+
+async function updateSellerProfiles(accesToken, profileId, userId) {
+  const usProfiles = await getAdvertisingApiResource('profiles', accesToken, profileId, 'US');
+  const euProfiles = await getAdvertisingApiResource('profiles', accesToken, profileId, 'EU');
+
+  const sellerProfiles = [...usProfiles, ...euProfiles];
+
+  console.log('got seller profiles', sellerProfiles);
+
+  const sellerProfilesSavePromises = sellerProfiles.map(async profile => {
+    //  save profile
+    await db.sellerProfile.set({
+      userId,
+      profileId: profile.profileId,
+      countryCode: profile.countryCode,
+      currencyCode: profile.currencyCode,
+      dailyBuget: profile.dailyBuget,
+      timezone: profile.timezone,
+      accountMarketplaceId: profile.accountInfo.marketplaceStringId,
+      accountId: profile.accountInfo.id,
+      type: profile.accountInfo.type,
+      profileName: profile.accountInfo.name
+    });
+  });
+
+  await Promise.all(sellerProfilesSavePromises);
+}
 
 const createProductionSession = async authCode => {
   //  exchange client authentication code with user tokens
@@ -55,7 +84,7 @@ const createProductionSession = async authCode => {
       console.log('user authentication', userId, email, name);
 
       //  attempt to find user
-      const user = await db.user.find({ userId }).then(res => res[0]);
+      let user = await db.user.find({ userId }).then(res => res[0]);
       if (!user) {
         //  user does not exist
         console.log('authentication, user does not exist', userId);
@@ -65,10 +94,20 @@ const createProductionSession = async authCode => {
           userId,
           email,
           name,
+          filterDateFrom: moment(moment.now())
+            .subtract(1, 'days')
+            .format('YYYYMMDD'),
+          filterDateTo: moment(moment.now()).format('YYYYMMDD'),
           refreshToken,
           accessToken
         });
+
+        user = await db.user.find({ userId }).then(res => res[0]);
       }
+
+      console.log('user', user);
+      //  always update the users profiles for us and eu accounts
+      await updateSellerProfiles(user.accesToken, user.profileId, user.userId);
 
       //  generate token to identify user
       const token = jwt.sign(
