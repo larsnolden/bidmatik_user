@@ -24,6 +24,21 @@ async function updateSellerProfiles(accesToken, profileId, userId) {
   console.log('got seller profiles', sellerProfiles);
 
   const sellerProfilesSavePromises = sellerProfiles.map(async profile => {
+    const { marketplaceStringId: marketplaceId, id: accountId } = profile.accountInfo;
+
+    const { profileName } = await axios
+      .post(process.env.RESOLVE_PROFILE_NAME_ENDPOINT, {
+        marketplaceId,
+        accountId
+      })
+      .then(res => res.data)
+      .catch(err => {
+        console.log(err);
+        return 'not found';
+      });
+
+    console.log('profile', profile);
+
     //  save profile
     await db.sellerProfile.set({
       userId,
@@ -35,7 +50,7 @@ async function updateSellerProfiles(accesToken, profileId, userId) {
       accountMarketplaceId: profile.accountInfo.marketplaceStringId,
       accountId: profile.accountInfo.id,
       type: profile.accountInfo.type,
-      profileName: profile.accountInfo.name
+      profileName
     });
   });
 

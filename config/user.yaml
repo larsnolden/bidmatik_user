@@ -71,6 +71,8 @@ spec:
               value: 'https://advertising-api-eu.amazon.com'
             - name: NODE_ENV
               value: 'production'
+            - name: RESOLVE_PROFILE_NAME_ENDPOINT
+              value: 'https://us-central1-bidmatik.cloudfunctions.net/resolveProfileName'
             # [END cloudsql_secrets]
         # Change <INSTANCE_CONNECTION_NAME> here to include your GCP
         # project, the region of your Cloud SQL instance and the name
