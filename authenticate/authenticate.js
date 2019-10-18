@@ -107,7 +107,7 @@ const createProductionSession = async authCode => {
 
       console.log('user', user);
       //  always update the users profiles for us and eu accounts
-      await updateSellerProfiles(user.accessToken, user.profileId, user.userId);
+      await updateSellerProfiles(accessToken, user.profileId, user.userId);
 
       //  generate token to identify user
       const token = jwt.sign(
