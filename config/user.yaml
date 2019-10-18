@@ -65,10 +65,8 @@ spec:
                 secretKeyRef:
                   name: user-app
                   key: token_secret
-            - name: US_ADVERTISING_API_ENPOINT
+            - name: ADVERTISING_API_ENPOINT
               value: 'https://advertising-api.amazon.com'
-            - name: EU_ADVERTISING_API_ENPOINT
-              value: 'https://advertising-api-eu.amazon.com'
             - name: NODE_ENV
               value: 'production'
             - name: DB_IP_PRODUCTION
