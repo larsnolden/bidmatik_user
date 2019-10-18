@@ -38,7 +38,7 @@ spec:
           # user and password to connect to the PostgreSQL instance.
           env:
             - name: DB_IP_PRODUCTION
-              value: 127.0.0.1:5432
+              value: 'localhost'
             # [START cloudsql_secrets]
             - name: DB_USER_PRODUCTION
               valueFrom:
@@ -71,8 +71,6 @@ spec:
               value: 'https://advertising-api-eu.amazon.com'
             - name: NODE_ENV
               value: 'production'
-            - name: DB_IP_PRODUCTION
-              value: 'localhost'
             # [END cloudsql_secrets]
         # Change <INSTANCE_CONNECTION_NAME> here to include your GCP
         # project, the region of your Cloud SQL instance and the name
