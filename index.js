@@ -7,6 +7,7 @@ import { typeDefs, resolvers } from './api';
 import traceKnex from './utils/traceKnex';
 
 const isProduction = process.env.NODE_ENV === 'production';
+console.log('ENV: ', process.env);
 
 knex = traceKnex(knex);
 
