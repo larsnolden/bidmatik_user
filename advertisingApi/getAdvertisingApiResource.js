@@ -9,7 +9,7 @@ export default async function getAdvertisingApiResource(
 ) {
   const request = {
     method: 'GET',
-    baseUrl:
+    baseURL:
       region === 'US'
         ? process.env.US_ADVERTISING_API_ENPOINT
         : process.env.EU_ADVERTISING_API_ENPOINT,
