@@ -126,7 +126,7 @@ const createProductionSession = async authCode => {
       await updateSellerProfiles(accessToken, user.profileId, user.userId);
 
       if (!user.activeSellerProfileId) {
-        const defaultSellerProfileId = await db.sellerProfile
+        const { profileId: defaultSellerProfileId } = await db.sellerProfile
           .find({ userId: user.userId })
           .then(res => res[0]);
 
