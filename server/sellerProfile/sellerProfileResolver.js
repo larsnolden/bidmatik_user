@@ -156,7 +156,7 @@ export default {
         db: handler.db,
         user,
         profileId
-      }),
+      });
     },
     ProfilePerformanceReduced: ({ id: profileId }, { from, to }, { handler, user }) =>
       getProfilePerformanceReduced({
