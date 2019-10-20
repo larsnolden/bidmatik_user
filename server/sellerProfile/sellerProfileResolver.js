@@ -148,21 +148,25 @@ export default {
       await SetActiveSellerProfile(handler.db, profileId, user.userId)
   },
   SellerProfile: {
-    Campaigns: ({ id: profileId }, _, { handler, user }) =>
-      getCampaigns({
+    Campaigns: (args, _, { handler, user }) => {
+      console.log('args', args);
+      console.log('user', user);
+      const { id: profileId } = args;
+      return getCampaigns({
         db: handler.db,
         user,
         profileId
       }),
-    ProfilePerformanceReduced: async ({ id: profileId }, { from, to }, { handler, user }) =>
-      await getProfilePerformanceReduced({
+    },
+    ProfilePerformanceReduced: ({ id: profileId }, { from, to }, { handler, user }) =>
+      getProfilePerformanceReduced({
         knex: handler.knex,
         profileId,
         from: from || user.filterDateFrom,
         to: to || user.filterDateTo
       }),
-    ProfilePerformance: async ({ id: profileId }, { from, to }, { handler, user }) =>
-      await getProfilePerformanceAll({
+    ProfilePerformance: ({ id: profileId }, { from, to }, { handler, user }) =>
+      getProfilePerformanceAll({
         knex: handler.knex,
         profileId,
         from: from || user.filterDateFrom,
