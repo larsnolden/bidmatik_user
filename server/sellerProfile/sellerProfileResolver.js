@@ -144,20 +144,16 @@ export default {
       await getActiveSellerProfile(handler.db, user.activeSellerProfileId, user.userId)
   },
   Mutation: {
-    SetActiveSellerProfile: async (_, { id: profileId }, { handler, user }) =>
-      await SetActiveSellerProfile(handler.db, profileId, user.userId)
+    SetActiveSellerProfile: (_, { id: profileId }, { handler, user }) =>
+      SetActiveSellerProfile(handler.db, profileId, user.userId)
   },
   SellerProfile: {
-    Campaigns: (args, _, { handler, user }) => {
-      console.log('args', args);
-      console.log('user', user);
-      const { id: profileId } = args;
-      return getCampaigns({
+    Campaigns: ({ id: profileId }, _, { handler, user }) =>
+      getCampaigns({
         db: handler.db,
         user,
         profileId
-      });
-    },
+      }),
     ProfilePerformanceReduced: ({ id: profileId }, { from, to }, { handler, user }) =>
       getProfilePerformanceReduced({
         knex: handler.knex,

@@ -125,6 +125,15 @@ const createProductionSession = async authCode => {
       //  always update the users profiles for us and eu accounts
       await updateSellerProfiles(accessToken, user.profileId, user.userId);
 
+      if (!user.activeSellerProfileId) {
+        const defaultSellerProfileId = await db.sellerProfile
+          .find({ userId: user.userId })
+          .then(res => res[0]);
+
+        await db.user.set({ userId: user.userId, activeSellerProfileId: defaultSellerProfileId });
+        console.log(`Set defaultSellerProfileId for ${user.email} to ${defaultSellerProfileId}`);
+      }
+
       //  generate token to identify user
       const token = jwt.sign(
         {
