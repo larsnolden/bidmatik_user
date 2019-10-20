@@ -24,12 +24,13 @@ async function updateSellerProfiles(accesToken, profileId, userId) {
   console.log('got seller profiles', sellerProfiles);
 
   const sellerProfilesSavePromises = sellerProfiles.map(async profile => {
-    const { marketplaceStringId: marketplaceId, id: accountId } = profile.accountInfo;
+    const { marketplaceStringId: marketplaceId, id: accountId, countryCode } = profile.accountInfo;
 
     const { profileName } = await axios
       .post(process.env.RESOLVE_PROFILE_NAME_ENDPOINT, {
         marketplaceId,
-        accountId
+        accountId,
+        countryCode
       })
       .then(res => res.data)
       .catch(err => {
